@@ -1,12 +1,10 @@
 {
-	"authors": [
-		"Navid"
-	],
-	"copyright": "Copyright © 2025, Navid",
-	"dependencies": {
-		"ark": "~>0.2.9"
-	},
-	"description": "A minimal D application.",
-	"license": "proprietary",
-	"name": "warthog"
+   "authors": ["Navid"],
+   "copyright": "Copyright © 2025, Navid",
+   "dependencies": {
+      "ark": "~>0.2.9"
+   },
+   "description": "A minimal D application.",
+   "license": "proprietary",
+   "name": "parallax"
 }

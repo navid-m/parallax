@@ -1,6 +1,6 @@
-module warthog.columns;
+module parallax.columns;
 
-import warthog.values;
+import parallax.values;
 
 class Column(T)
 {

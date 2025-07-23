@@ -1,4 +1,4 @@
-module warthog.values;
+module parallax.values;
 
 import std.variant;
 

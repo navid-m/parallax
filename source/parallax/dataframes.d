@@ -1,7 +1,7 @@
-module warthog.dataframes;
+module parallax.dataframes;
 
-import warthog.columns;
-import warthog.values;
+import parallax.columns;
+import parallax.values;
 import std.typecons;
 import std.exception;
 import std.range;
@@ -165,6 +165,35 @@ class DataFrame
         }
 
         return result;
+    }
+
+    DataFrame toDatetime(string colName, string format = "")
+    {
+        enforce(colName in nameToIndex_, "Column not found: " ~ colName);
+
+        auto col = this[colName];
+        auto newData = new ParallaxDateTime[](rows);
+
+        foreach (i; 0 .. rows)
+        {
+            auto strVal = col.toString(i);
+            newData[i] = parseDateTime(strVal, format);
+        }
+
+        auto newCols = columns_.dup;
+        auto dateTimeCol = new DateTimeColumn(colName, newData);
+        newCols[nameToIndex_[colName]] = cast(IColumn) dateTimeCol;
+
+        return new DataFrame(newCols);
+    }
+
+    import parallax.datetime;
+
+    DateTimeColumn dt(string colName)
+    {
+        auto col = cast(DateTimeColumn) this[colName];
+        enforce(col !is null, "Column is not a datetime column: " ~ colName);
+        return col;
     }
 
     DataFrame describe()

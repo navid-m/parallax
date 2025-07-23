@@ -1,6 +1,6 @@
-module warthog;
+module parallax;
 
-public import warthog.csv;
-public import warthog.columns;
-public import warthog.dataframes;
-public import warthog.values;
+public import parallax.csv;
+public import parallax.columns;
+public import parallax.dataframes;
+public import parallax.values;

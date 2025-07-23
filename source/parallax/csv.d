@@ -1,6 +1,6 @@
-module warthog.csv;
+module parallax.csv;
 
-import warthog.dataframes;
+import parallax.dataframes;
 import std.stdio;
 
 class FastCsvReader
