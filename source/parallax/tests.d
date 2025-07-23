@@ -130,4 +130,54 @@ package unittest
         cast(IColumn) valueCol
     ]);
     writeln("Created in ", sw2.peek.total!"seconds", " seconds");
+
+}
+
+package unittest
+{
+    string[] dates = [
+        "2023-01-15 09:30:00",
+        "2023-02-20 14:45:30",
+        "2023-03-25 16:20:15",
+        "2023-04-10 11:10:45",
+        "2023-05-05 13:55:20"
+    ];
+
+    double[] prices = [100.5, 105.2, 98.7, 110.3, 107.8];
+    int[] volumes = [1000, 1500, 800, 2000, 1200];
+
+    auto df = createDataFrame(
+        ["date", "price", "volume"],
+        dates, prices, volumes
+    );
+
+    writeln("Original DataFrame:");
+    df.show();
+
+    auto dfWithDates = df.toDatetime("date");
+    writeln("\nAfter converting to datetime:");
+    dfWithDates.show();
+
+    auto dtCol = dfWithDates.dt("date");
+
+    writeln("\nExtracting date components:");
+    writeln("Years: ", dtCol.dt_year().getData()); //segfaults here.
+    writeln("Months: ", dtCol.dt_month().getData());
+    writeln("Days: ", dtCol.dt_day().getData());
+    writeln("Day names: ");
+
+    foreach (i; 0 .. dtCol.length)
+    {
+        auto dt = dtCol.getData()[i];
+        writeln("  ", dt.dayName);
+    }
+
+    writeln("\nFormatted dates:");
+    foreach (i; 0 .. dtCol.length)
+    {
+        auto dt = dtCol.getData()[i];
+        writeln("  ", dt.strftime("%B %d, %Y at %H:%M"));
+    }
+
+    writeln;
 }

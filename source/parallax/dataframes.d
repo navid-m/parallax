@@ -196,6 +196,575 @@ class DataFrame
         return col;
     }
 
+    /**
+    * Set a datetime index (for time series operations)
+    */
+    DataFrame setDatetimeIndex(string colName)
+    {
+        auto dtCol = cast(DateTimeColumn) this[colName];
+        enforce(dtCol !is null, "Column must be datetime type: " ~ colName);
+        auto newCols = columns_.filter!(col => col.name != colName).array;
+        auto result = new DataFrame(newCols);
+        return result;
+    }
+
+    /**
+    * Resample datetime data by frequency
+    */
+    DataFrame resample(string colName, string freq, string aggFunc = "mean")
+    {
+        auto dtCol = cast(DateTimeColumn) this[colName];
+        enforce(dtCol !is null, "Column must be datetime type: " ~ colName);
+
+        auto dtData = dtCol.getData();
+        if (dtData.length == 0)
+            return new DataFrame();
+
+        auto minDate = dtData[0];
+        auto maxDate = dtData[0];
+        foreach (dt; dtData)
+        {
+            if (dt < minDate)
+                minDate = dt;
+            if (dt > maxDate)
+                maxDate = dt;
+        }
+
+        auto periods = splitByFrequency(minDate, maxDate, freq);
+        string[] periodNames;
+        IColumn[] resultCols;
+        auto periodCol = new TCol!string("period");
+        foreach (period; periods)
+        {
+            periodCol.append(period.start.toString());
+        }
+        resultCols ~= cast(IColumn) periodCol;
+
+        foreach (col; columns_)
+        {
+            if (col.name == colName)
+                continue;
+
+            auto stringCol = cast(TCol!string) col;
+            if (stringCol)
+                continue;
+
+            auto newCol = new TCol!double(col.name);
+
+            foreach (period; periods)
+            {
+                double[] values;
+                foreach (i; 0 .. dtData.length)
+                {
+                    if (period.contains(dtData[i]))
+                    {
+                        auto val = col.getValue(i);
+                        if (val.convertsTo!double)
+                            values ~= val.get!double;
+                        else if (val.convertsTo!int)
+                            values ~= cast(double) val.get!int;
+                    }
+                }
+
+                double result = 0.0;
+                if (values.length > 0)
+                {
+                    switch (aggFunc.toLower)
+                    {
+                    case "mean":
+                        result = values.sum / values.length;
+                        break;
+                    case "sum":
+                        result = values.sum;
+                        break;
+                    case "min":
+                        result = values.minElement;
+                        break;
+                    case "max":
+                        result = values.maxElement;
+                        break;
+                    case "count":
+                        result = cast(double) values.length;
+                        break;
+                    default:
+                        result = values.sum / values.length;
+                    }
+                }
+                newCol.append(result);
+            }
+
+            resultCols ~= cast(IColumn) newCol;
+        }
+
+        return new DataFrame(resultCols);
+    }
+
+    /**
+    * Filter data by date range
+    */
+    DataFrame betweenDates(string colName, ParallaxDateTime start, ParallaxDateTime end)
+    {
+        auto dtCol = cast(DateTimeColumn) this[colName];
+        enforce(dtCol !is null, "Column must be datetime type: " ~ colName);
+
+        auto dtData = dtCol.getData();
+        bool[] mask = new bool[](rows);
+
+        foreach (i; 0 .. dtData.length)
+        {
+            mask[i] = (dtData[i] >= start && dtData[i] <= end);
+        }
+
+        return where(mask);
+    }
+
+    /**
+    * Filter data by date range using string dates
+    */
+    DataFrame betweenDates(string colName, string startStr, string endStr)
+    {
+        auto start = parseDateTime(startStr);
+        auto end = parseDateTime(endStr);
+        return betweenDates(colName, start, end);
+    }
+
+    /**
+    * Get data for a specific year
+    */
+    DataFrame forYear(string colName, int year)
+    {
+        auto start = ParallaxDateTime(year, 1, 1);
+        auto end = ParallaxDateTime(year, 12, 31, 23, 59, 59);
+        return betweenDates(colName, start, end);
+    }
+
+    /**
+    * Get data for a specific month
+    */
+    DataFrame forMonth(string colName, int year, int month)
+    {
+        import std.datetime;
+
+        auto start = ParallaxDateTime(year, month, 1);
+        auto lastDay = month == 12 ?
+            ParallaxDateTime(year + 1, 1, 1) + (-1).days
+            : ParallaxDateTime(year, month + 1, 1) + (-1)
+                .days;
+        return betweenDates(colName, start, lastDay);
+    }
+
+    DataFrame rollup(string dateCol, string valueCol, string period = "daily", string aggFunc = "sum")
+    {
+        import std.datetime;
+
+        auto dtCol = cast(DateTimeColumn) this[dateCol];
+        enforce(dtCol !is null, "Date column must be datetime type: " ~ dateCol);
+
+        auto valCol = this[valueCol];
+        auto dtData = dtCol.getData();
+
+        string[ParallaxDateTime] periodMap;
+        double[string] aggregatedValues;
+        int[string] counts;
+
+        foreach (i; 0 .. dtData.length)
+        {
+            auto dt = dtData[i];
+            string periodKey;
+
+            switch (period.toLower)
+            {
+            case "daily":
+                periodKey = format("%04d-%02d-%02d", dt.year, dt.month, dt.day);
+                break;
+            case "weekly":
+                auto monday = dt.floor("day") + (1 - dt.dayOfWeek).days;
+                periodKey = format("%04d-W%02d", monday.year,
+                    (monday.dayOfYear - 1) / 7 + 1);
+                break;
+            case "monthly":
+                periodKey = format("%04d-%02d", dt.year, dt.month);
+                break;
+            case "yearly":
+                periodKey = format("%04d", dt.year);
+                break;
+            default:
+                periodKey = format("%04d-%02d-%02d", dt.year, dt.month, dt.day);
+            }
+
+            auto val = valCol.getValue(i);
+            double numVal = 0.0;
+            if (val.convertsTo!double)
+                numVal = val.get!double;
+            else if (val.convertsTo!int)
+                numVal = cast(double) val.get!int;
+            else if (val.convertsTo!long)
+                numVal = cast(double) val.get!long;
+
+            if (periodKey !in aggregatedValues)
+            {
+                aggregatedValues[periodKey] = 0.0;
+                counts[periodKey] = 0;
+            }
+
+            switch (aggFunc.toLower)
+            {
+            case "sum":
+                aggregatedValues[periodKey] += numVal;
+                break;
+            case "mean":
+                aggregatedValues[periodKey] += numVal;
+                counts[periodKey]++;
+                break;
+            case "count":
+                aggregatedValues[periodKey] += 1;
+                break;
+            case "min":
+                if (counts[periodKey] == 0 || numVal < aggregatedValues[periodKey])
+                    aggregatedValues[periodKey] = numVal;
+                break;
+            case "max":
+                if (counts[periodKey] == 0 || numVal > aggregatedValues[periodKey])
+                    aggregatedValues[periodKey] = numVal;
+                break;
+            default:
+                aggregatedValues[periodKey] += numVal;
+            }
+            counts[periodKey]++;
+        }
+
+        if (aggFunc.toLower == "mean")
+        {
+            foreach (key; aggregatedValues.keys)
+            {
+                if (counts[key] > 0)
+                    aggregatedValues[key] /= counts[key];
+            }
+        }
+
+        auto periodKeys = aggregatedValues.keys.sort().array;
+        auto periodCol = new TCol!string(period);
+        auto valueCol2 = new TCol!double(valueCol ~ "_" ~ aggFunc);
+
+        foreach (key; periodKeys)
+        {
+            periodCol.append(key);
+            valueCol2.append(aggregatedValues[key]);
+        }
+
+        return new DataFrame([cast(IColumn) periodCol, cast(IColumn) valueCol2]);
+    }
+
+    /**
+    * Calculate rolling window statistics over time
+    */
+    DataFrame rolling(string dateCol, string valueCol, int window, string aggFunc = "mean")
+    {
+        import std.math;
+
+        auto dtCol = cast(DateTimeColumn) this[dateCol];
+        enforce(dtCol !is null, "Date column must be datetime type: " ~ dateCol);
+        enforce(window > 0, "Window size must be positive");
+
+        auto valCol = this[valueCol];
+        auto resultPeriodCol = new TCol!string(dateCol);
+        auto resultValueCol = new TCol!double(valueCol ~ "_rolling_" ~ aggFunc);
+
+        foreach (i; 0 .. rows)
+        {
+            if (i < window - 1)
+            {
+                resultPeriodCol.append(dtCol.toString(i));
+                resultValueCol.append(double.nan);
+                continue;
+            }
+
+            double[] windowValues;
+            foreach (j; (i - window + 1) .. (i + 1))
+            {
+                auto val = valCol.getValue(j);
+                if (val.convertsTo!double)
+                    windowValues ~= val.get!double;
+                else if (val.convertsTo!int)
+                    windowValues ~= cast(double) val.get!int;
+                else if (val.convertsTo!long)
+                    windowValues ~= cast(double) val.get!long;
+            }
+
+            double result = 0.0;
+            if (windowValues.length > 0)
+            {
+                switch (aggFunc.toLower)
+                {
+                case "mean":
+                    result = windowValues.sum / windowValues.length;
+                    break;
+                case "sum":
+                    result = windowValues.sum;
+                    break;
+                case "min":
+                    result = windowValues.minElement;
+                    break;
+                case "max":
+                    result = windowValues.maxElement;
+                    break;
+                case "std":
+                    auto mean = windowValues.sum / windowValues.length;
+                    auto variance = windowValues.map!(x => (x - mean) * (x - mean))
+                        .sum / windowValues.length;
+                    result = sqrt(variance);
+                    break;
+                default:
+                    result = windowValues.sum / windowValues.length;
+                }
+            }
+            else
+            {
+                result = double.nan;
+            }
+
+            resultPeriodCol.append(dtCol.toString(i));
+            resultValueCol.append(result);
+        }
+
+        return new DataFrame([
+            cast(IColumn) resultPeriodCol, cast(IColumn) resultValueCol
+        ]);
+    }
+
+    /**
+    * Calculate period-over-period changes
+    */
+    DataFrame pctChange(string dateCol, string valueCol, int periods = 1)
+    {
+        auto dtCol = cast(DateTimeColumn) this[dateCol];
+        enforce(dtCol !is null, "Date column must be datetime type: " ~ dateCol);
+
+        auto valCol = this[valueCol];
+
+        auto resultDateCol = new TCol!string(dateCol);
+        auto resultChangeCol = new TCol!double(valueCol ~ "_pct_change");
+
+        foreach (i; 0 .. rows)
+        {
+            resultDateCol.append(dtCol.toString(i));
+
+            if (i < periods)
+            {
+                resultChangeCol.append(double.nan);
+                continue;
+            }
+
+            auto currentVal = valCol.getValue(i);
+            auto previousVal = valCol.getValue(i - periods);
+
+            double current = 0.0, previous = 0.0;
+            bool currentValid = false, previousValid = false;
+
+            if (currentVal.convertsTo!double)
+            {
+                current = currentVal.get!double;
+                currentValid = true;
+            }
+            else if (currentVal.convertsTo!int)
+            {
+                current = cast(double) currentVal.get!int;
+                currentValid = true;
+            }
+
+            if (previousVal.convertsTo!double)
+            {
+                previous = previousVal.get!double;
+                previousValid = true;
+            }
+            else if (previousVal.convertsTo!int)
+            {
+                previous = cast(double) previousVal.get!int;
+                previousValid = true;
+            }
+
+            if (currentValid && previousValid && previous != 0.0)
+            {
+                double change = (current - previous) / previous;
+                resultChangeCol.append(change);
+            }
+            else
+            {
+                resultChangeCol.append(double.nan);
+            }
+        }
+
+        return new DataFrame([
+            cast(IColumn) resultDateCol, cast(IColumn) resultChangeCol
+        ]);
+    }
+
+    /**
+    * Shift data by a number of periods
+    */
+    DataFrame shift(string dateCol, string valueCol, int periods = 1)
+    {
+        auto dtCol = cast(DateTimeColumn) this[dateCol];
+        enforce(dtCol !is null, "Date column must be datetime type: " ~ dateCol);
+
+        auto valCol = this[valueCol];
+        auto resultDateCol = new TCol!string(dateCol);
+        auto resultValueCol = new TCol!string(valueCol ~ "_shifted");
+
+        foreach (i; 0 .. rows)
+        {
+            resultDateCol.append(dtCol.toString(i));
+
+            int sourceIndex = cast(int) i - periods;
+            if (sourceIndex >= 0 && sourceIndex < rows)
+            {
+                resultValueCol.append(valCol.toString(sourceIndex));
+            }
+            else
+            {
+                resultValueCol.append("");
+            }
+        }
+
+        return new DataFrame([
+            cast(IColumn) resultDateCol, cast(IColumn) resultValueCol
+        ]);
+    }
+
+    /**
+    * Forward fill missing values based on time order
+    */
+    DataFrame ffill(string dateCol, string[] fillCols = [])
+    {
+        auto dtCol = cast(DateTimeColumn) this[dateCol];
+        enforce(dtCol !is null, "Date column must be datetime type: " ~ dateCol);
+
+        auto targetCols = fillCols.length > 0 ? fillCols : columns_.map!(col => col.name)
+            .filter!(name => name != dateCol)
+            .array;
+
+        auto newCols = new IColumn[](cols);
+
+        foreach (i, col; columns_)
+        {
+            if (targetCols.canFind(col.name))
+            {
+                auto newCol = new TCol!string(col.name);
+                string lastValidValue = "";
+
+                foreach (j; 0 .. col.length)
+                {
+                    string currentValue = col.toString(j);
+                    if (currentValue != "" && currentValue != "null" && currentValue != "NaN")
+                    {
+                        lastValidValue = currentValue;
+                        newCol.append(currentValue);
+                    }
+                    else
+                    {
+                        newCol.append(lastValidValue);
+                    }
+                }
+                newCols[i] = cast(IColumn) newCol;
+            }
+            else
+            {
+                newCols[i] = col.copy();
+            }
+        }
+
+        return new DataFrame(newCols);
+    }
+
+    /**
+     * Backward fill missing values based on time order
+     */
+    DataFrame bfill(string dateCol, string[] fillCols = [])
+    {
+        auto dtCol = cast(DateTimeColumn) this[dateCol];
+        enforce(dtCol !is null, "Date column must be datetime type: " ~ dateCol);
+
+        auto targetCols = fillCols.length > 0 ? fillCols : columns_.map!(col => col.name)
+            .filter!(name => name != dateCol)
+            .array;
+
+        auto newCols = new IColumn[](cols);
+
+        foreach (i, col; columns_)
+        {
+            if (targetCols.canFind(col.name))
+            {
+                auto newCol = new TCol!string(col.name);
+                string[] values = new string[](col.length);
+
+                foreach (j; 0 .. col.length)
+                    values[j] = col.toString(j);
+
+                string nextValidValue = "";
+                foreach_reverse (j; 0 .. values.length)
+                {
+                    if (values[j] != "" && values[j] != "null" && values[j] != "NaN")
+                    {
+                        nextValidValue = values[j];
+                    }
+                    else if (nextValidValue != "")
+                    {
+                        values[j] = nextValidValue;
+                    }
+                }
+
+                foreach (val; values)
+                {
+                    newCol.append(val);
+                }
+                newCols[i] = cast(IColumn) newCol;
+            }
+            else
+            {
+                newCols[i] = col.copy();
+            }
+        }
+
+        return new DataFrame(newCols);
+    }
+
+    /**
+     * Create lag features for time series analysis
+     */
+    DataFrame createLags(string dateCol, string valueCol, int[] lags)
+    {
+        auto dtCol = cast(DateTimeColumn) this[dateCol];
+        enforce(dtCol !is null, "Date column must be datetime type: " ~ dateCol);
+
+        auto valCol = this[valueCol];
+        IColumn[] resultCols;
+
+        resultCols ~= dtCol.copy();
+        resultCols ~= valCol.copy();
+
+        foreach (lag; lags)
+        {
+            auto lagCol = new TCol!string(format("%s_lag_%d", valueCol, lag));
+
+            foreach (i; 0 .. rows)
+            {
+                int sourceIndex = cast(int) i - lag;
+                if (sourceIndex >= 0 && sourceIndex < rows)
+                {
+                    lagCol.append(valCol.toString(sourceIndex));
+                }
+                else
+                {
+                    lagCol.append("");
+                }
+            }
+
+            resultCols ~= cast(IColumn) lagCol;
+        }
+
+        return new DataFrame(resultCols);
+    }
+
     DataFrame describe()
     {
         if (rows == 0)
