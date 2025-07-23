@@ -142,10 +142,8 @@ struct ParallaxDateTime
             return ParallaxDateTime(timestamp - dur);
     }
 
-    Duration opBinary(string op)(ParallaxDateTime other) const if (op == "-")
-    {
-        return timestamp - other.timestamp;
-    }
+    Duration opBinary(string op)(ParallaxDateTime other) const if (op == "-") =>
+        timestamp - other.timestamp;
 
     int opCmp(const ParallaxDateTime other) const
     {
