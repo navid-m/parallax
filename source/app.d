@@ -14,10 +14,8 @@ import std.typecons;
 import std.traits;
 import std.exception;
 
-// Type alias for DataFrame values
 alias DataValue = Variant;
 
-// Column class to hold typed data
 class Column(T)
 {
 	T[] data;
@@ -50,7 +48,6 @@ class Column(T)
 	}
 }
 
-// Generic column interface
 interface IColumn
 {
 	@property string name() const;
@@ -62,7 +59,6 @@ interface IColumn
 	IColumn copy();
 }
 
-// Concrete column implementation
 class TypedColumn(T) : IColumn
 {
 	private Column!T col;
@@ -118,7 +114,6 @@ class TypedColumn(T) : IColumn
 	}
 }
 
-// Main DataFrame class
 class DataFrame
 {
 	private IColumn[] columns_;
@@ -137,7 +132,6 @@ class DataFrame
 		}
 	}
 
-	// Factory methods for common data types
 	static DataFrame create(T...)(string[] names, T arrays)
 	{
 		auto df = new DataFrame();
@@ -159,7 +153,6 @@ class DataFrame
 		nameToIndex_[col.name] = cast(int) columns_.length - 1;
 	}
 
-	// Indexing operations
 	IColumn opIndex(string colName)
 	{
 		if (colName !in nameToIndex_)
@@ -189,7 +182,6 @@ class DataFrame
 		columns_[col].setValue(row, value);
 	}
 
-	// Properties
 	@property size_t rows() const
 	{
 		return columns_.length > 0 ? columns_[0].length : 0;
@@ -210,7 +202,6 @@ class DataFrame
 		return tuple(rows, cols);
 	}
 
-	// Slicing operations
 	DataFrame opSlice(size_t rowStart, size_t rowEnd)
 	{
 		auto newCols = columns_.map!(col => col.slice(rowStart, rowEnd)).array;
@@ -229,7 +220,6 @@ class DataFrame
 		return this[start .. rows];
 	}
 
-	// Column selection
 	DataFrame select(string[] colNames...)
 	{
 		IColumn[] selectedCols;
@@ -240,7 +230,6 @@ class DataFrame
 		return new DataFrame(selectedCols);
 	}
 
-	// Filtering
 	DataFrame where(bool[] mask)
 	{
 		enforce(mask.length == rows, "Mask length must match number of rows");
@@ -249,45 +238,37 @@ class DataFrame
 		foreach (col; columns_)
 		{
 			auto newCol = col.copy();
-			// This is simplified - in practice you'd need to implement proper filtering
+			// TODO: Implement proper filtering.
 			filteredCols ~= newCol;
 		}
 		return new DataFrame(filteredCols);
 	}
 
-	// Group operations
 	DataFrame groupBy(string colName)
 	{
-		// Simplified groupby - returns copy for now
+		// TODO: Actually implement groupBy.
 		return new DataFrame(columns_.map!(col => col.copy()).array);
 	}
 
-	// Statistical operations
 	DataFrame describe()
 	{
 		if (rows == 0)
 			return new DataFrame();
 
-		// Statistics we'll calculate: count, mean, std, min, 25%, 50%, 75%, max
 		string[] statNames = [
 			"count", "mean", "std", "min", "25%", "50%", "75%", "max"
 		];
 		IColumn[] resultCols;
-
-		// Add index column for statistic names
 		auto indexCol = new TypedColumn!string("", statNames.dup);
 		resultCols ~= cast(IColumn) indexCol;
 
 		foreach (col; columns_)
 		{
-			// Skip non-numeric columns
 			auto stringCol = cast(TypedColumn!string) col;
 			if (stringCol)
 			{
-				// Check if string column contains numeric data
 				double[] numericData;
 				bool isNumeric = true;
-
 				foreach (val; stringCol.getData())
 				{
 					try
@@ -302,16 +283,14 @@ class DataFrame
 				}
 
 				if (!isNumeric)
-					continue; // Skip non-numeric string columns
+					continue;
 
-				// Process as numeric data
 				auto stats = calculateStats(numericData);
 				auto statCol = new TypedColumn!string(col.name, stats);
 				resultCols ~= cast(IColumn) statCol;
 			}
 			else
 			{
-				// Handle other numeric column types
 				double[] values;
 				foreach (i; 0 .. col.length)
 				{
@@ -367,9 +346,8 @@ class DataFrame
 		double min = validData[0];
 		double max = validData[$ - 1];
 
-		// Percentiles (using linear interpolation)
 		double q25 = percentile(validData, 0.25);
-		double q50 = percentile(validData, 0.50); // median
+		double q50 = percentile(validData, 0.50);
 		double q75 = percentile(validData, 0.75);
 
 		return [
@@ -403,20 +381,16 @@ class DataFrame
 		return sortedData[lower] * (1 - weight) + sortedData[upper] * weight;
 	}
 
-	// 2. VALUE_COUNTS() - Count unique values in a column
 	auto valueCounts(string colName, bool ascending = false, bool dropna = true)
 	{
 		enforce(colName in nameToIndex_, "Column '" ~ colName ~ "' not found");
-
 		auto col = this[colName];
 		int[string] counts;
 
-		// Count occurrences
 		foreach (i; 0 .. col.length)
 		{
 			string val = col.toString(i);
 
-			// Handle NaN/null values
 			if (dropna && (val == "" || val == "null" || val == "NaN"))
 				continue;
 
@@ -426,7 +400,6 @@ class DataFrame
 				counts[val] = 1;
 		}
 
-		// Convert to arrays for sorting
 		string[] values;
 		int[] countValues;
 
@@ -436,16 +409,13 @@ class DataFrame
 			countValues ~= count;
 		}
 
-		// Create indices for sorting
 		auto indices = iota(0, values.length).array;
 
-		// Sort by count (descending by default)
 		if (ascending)
 			indices.sort!((a, b) => countValues[a] < countValues[b]);
 		else
 			indices.sort!((a, b) => countValues[a] > countValues[b]);
 
-		// Reorder arrays
 		string[] sortedValues;
 		int[] sortedCounts;
 		foreach (idx; indices)
@@ -454,14 +424,12 @@ class DataFrame
 			sortedCounts ~= countValues[idx];
 		}
 
-		// Create result DataFrame
 		auto valueCol = new TypedColumn!string(colName, sortedValues);
 		auto countCol = new TypedColumn!int("count", sortedCounts);
 
 		return new DataFrame([cast(IColumn) valueCol, cast(IColumn) countCol]);
 	}
 
-	// 3. FILLNA() - Fill missing values
 	DataFrame fillna(DataValue fillValue, string[] columns = [])
 	{
 		auto newCols = new IColumn[](cols);
@@ -471,7 +439,6 @@ class DataFrame
 		{
 			if (targetCols.canFind(col.name))
 			{
-				// Create new column with filled values
 				auto stringCol = cast(TypedColumn!string) col;
 				if (stringCol)
 				{
@@ -489,7 +456,6 @@ class DataFrame
 				}
 				else
 				{
-					// Handle other column types
 					newCols[i] = col.copy();
 					foreach (j; 0 .. col.length)
 					{
@@ -511,7 +477,6 @@ class DataFrame
 		return new DataFrame(newCols);
 	}
 
-	// 4. PIVOT_TABLE() - Create pivot table with aggregation
 	DataFrame pivotTable(string values, string index, string columns,
 		string aggfunc = "mean", DataValue fillValue = DataValue(""))
 	{
@@ -523,7 +488,6 @@ class DataFrame
 		auto idxCol = this[index];
 		auto colsCol = this[columns];
 
-		// Get unique values for index and columns
 		bool[string] uniqueIndices, uniqueCols;
 		foreach (i; 0 .. rows)
 		{
@@ -534,19 +498,16 @@ class DataFrame
 		string[] indexValues = uniqueIndices.keys.sort().array;
 		string[] columnValues = uniqueCols.keys.sort().array;
 
-		// Create result structure
 		IColumn[] resultCols;
 		auto indexCol = new TypedColumn!string(index, indexValues.dup);
 		resultCols ~= cast(IColumn) indexCol;
 
-		// Create columns for each unique column value
 		foreach (colVal; columnValues)
 		{
 			auto pivotCol = new TypedColumn!string(colVal);
 
 			foreach (idxVal; indexValues)
 			{
-				// Find all matching rows
 				double[] matchingValues;
 				foreach (i; 0 .. rows)
 				{
@@ -560,12 +521,10 @@ class DataFrame
 						}
 						catch (Exception e)
 						{
-							// Skip non-numeric values
 						}
 					}
 				}
 
-				// Apply aggregation function
 				string result;
 				if (matchingValues.length == 0)
 				{
@@ -603,10 +562,9 @@ class DataFrame
 		return new DataFrame(resultCols);
 	}
 
-	// 5. APPLY() - Apply function to rows or columns
 	DataFrame apply(T)(T delegate(string[]) func, int axis = 0)
 	{
-		if (axis == 0) // Apply to columns
+		if (axis == 0)
 		{
 			auto resultCol = new TypedColumn!string("result");
 
@@ -623,7 +581,7 @@ class DataFrame
 
 			return new DataFrame([cast(IColumn) resultCol]);
 		}
-		else // Apply to rows (axis = 1)
+		else
 		{
 			IColumn[] resultCols;
 
@@ -673,18 +631,21 @@ class DataFrame
 			writef("%-*s ", colWidths[i], columnNames_[i]);
 		}
 		writeln();
-
-		// Print separator
 		write("   ");
 		foreach (i; 0 .. displayCols)
 		{
+			version (Windows)
+			{
+				import core.sys.windows.windows : SetConsoleOutputCP;
+
+				SetConsoleOutputCP(65_001);
+			}
 			foreach (j; 0 .. colWidths[i])
-				write("-");
+				write("─");
 			write(" ");
 		}
 		writeln();
 
-		// Print data rows
 		foreach (i; 0 .. displayRows)
 		{
 			writef("%3d ", i);
@@ -701,12 +662,10 @@ class DataFrame
 			writeln("... (", cols - maxCols, " more columns)");
 	}
 
-	// Display
 	void show(size_t maxRows = 10)
 	{
 		writeln("DataFrame(", rows, " rows, ", cols, " columns)");
 
-		// Print header
 		write("   ");
 		foreach (name; columnNames_)
 		{
@@ -714,7 +673,6 @@ class DataFrame
 		}
 		writeln();
 
-		// Print rows
 		size_t displayRows = std.algorithm.min(maxRows, rows);
 		foreach (i; 0 .. displayRows)
 		{
@@ -732,7 +690,6 @@ class DataFrame
 		}
 	}
 
-	// CSV Operations with multithreading
 	static DataFrame readCsv(string filename, bool hasHeader = true, char delimiter = ',')
 	{
 		auto content = readText(filename);
@@ -751,7 +708,6 @@ class DataFrame
 		}
 		else
 		{
-			// Generate default column names
 			auto firstLine = lines[0].split(delimiter);
 			foreach (i; 0 .. firstLine.length)
 			{
@@ -759,19 +715,14 @@ class DataFrame
 			}
 		}
 
-		// Parse data in parallel chunks
 		auto dataLines = lines[dataStart .. $];
 		auto numThreads = totalCPUs;
 		auto chunkSize = std.algorithm.max(1, dataLines.length / numThreads);
-
-		// Initialize columns as string arrays first
 		auto columns = new TypedColumn!string[](headers.length);
-		foreach (i, header; headers)
-		{
-			columns[i] = new TypedColumn!string(header);
-		}
 
-		// Process chunks in parallel
+		foreach (i, header; headers)
+			columns[i] = new TypedColumn!string(header);
+
 		auto chunks = dataLines.chunks(chunkSize).array;
 		auto results = new string[][][](chunks.length);
 
@@ -812,7 +763,6 @@ class DataFrame
 			}
 		}
 
-		// Convert columns to appropriate types (simplified - assumes string for now)
 		IColumn[] finalCols;
 		foreach (col; columns)
 		{
@@ -826,19 +776,15 @@ class DataFrame
 	{
 		auto file = File(filename, "w");
 
-		// Write header
 		if (writeHeader)
 		{
 			file.write(columnNames_.join(delimiter));
 			file.writeln();
 		}
 
-		// Process rows in parallel chunks
 		auto numThreads = totalCPUs;
 		auto chunkSize = std.algorithm.max(1, rows / numThreads);
 		auto chunks = iota(0, rows).chunks(chunkSize).array;
-
-		// Buffer for each thread
 		auto buffers = new string[](chunks.length);
 
 		foreach (item; parallel(chunks.enumerate))
@@ -861,7 +807,6 @@ class DataFrame
 			buffers[chunkIdx] = buffer.data;
 		}
 
-		// Write buffers sequentially to maintain order
 		foreach (buffer; buffers)
 		{
 			file.write(buffer);
@@ -870,7 +815,6 @@ class DataFrame
 		file.close();
 	}
 
-	// Arithmetic operations
 	DataFrame opBinary(string op)(DataFrame other) if (op == "+" || op == "-")
 	{
 		enforce(this.shape == other.shape, "DataFrames must have same shape");
@@ -878,19 +822,17 @@ class DataFrame
 		auto newCols = new IColumn[](cols);
 		foreach (i; 0 .. cols)
 		{
-			// Simplified - would need proper type handling
 			newCols[i] = columns_[i].copy();
 		}
 		return new DataFrame(newCols);
 	}
 
-	// Sorting
 	DataFrame sortValues(string colName, bool ascending = true)
 	{
+		// TODO: Sort properly.
 		auto colIdx = nameToIndex_[colName];
 		auto indices = iota(0, rows).array;
 
-		// Create sort indices (simplified)
 		indices.sort!((a, b) => columns_[colIdx].toString(a) < columns_[colIdx].toString(b));
 
 		if (!ascending)
@@ -898,12 +840,10 @@ class DataFrame
 			indices.reverse();
 		}
 
-		// Create new dataframe with sorted rows
 		auto newCols = new IColumn[](cols);
 		foreach (i, col; columns_)
 		{
 			newCols[i] = col.copy();
-			// Would need to reorder data based on indices
 		}
 
 		return new DataFrame(newCols);
@@ -1379,4 +1319,51 @@ class FastCsvReader
 
 void main()
 {
+}
+
+unittest
+{
+
+	// Create sample data
+	auto names = ["Alice", "Bob", "Charlie", "David", "Eve", "Alice", "Bob"];
+	auto ages = ["25", "30", "35", "40", "28", "25", "32"];
+	auto salaries = [
+		"50000", "60000", "70000", "80000", "55000", "50000", "65000"
+	];
+	auto departments = ["IT", "HR", "IT", "Finance", "IT", "HR", "HR"];
+
+	auto nameCol = new TypedColumn!string("name", names.dup);
+	auto ageCol = new TypedColumn!string("age", ages.dup);
+	auto salaryCol = new TypedColumn!string("salary", salaries.dup);
+	auto deptCol = new TypedColumn!string("department", departments.dup);
+
+	auto df = new DataFrame([
+		cast(IColumn) nameCol, cast(IColumn) ageCol,
+		cast(IColumn) salaryCol, cast(IColumn) deptCol
+	]);
+
+	writeln("Original DataFrame:");
+	df.show();
+
+	writeln("\n1. DESCRIBE() - Statistical Summary:");
+	auto desc = df.describe();
+	desc.showPivot();
+
+	writeln("\n2. VALUE_COUNTS() - Count unique names:");
+	auto counts = df.valueCounts("name");
+	counts.show();
+
+	writeln("\n3. FILLNA() - Fill missing values (demo with copy):");
+	auto filled = df.fillna(DataValue("Unknown"));
+	writeln("(No missing values in this example, but function is ready)");
+
+	writeln("\n4. PIVOT_TABLE() - Average salary by department and name:");
+	auto pivot = df.pivotTable("salary", "department", "name", "mean");
+	pivot.showPivot();
+
+	writeln("\n5. APPLY() - Custom function on rows (count non-empty fields):");
+	auto applied = df.apply((string[] row) {
+		return row.filter!(x => x.length > 0).array.length;
+	});
+	applied.show();
 }
