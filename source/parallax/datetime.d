@@ -425,57 +425,59 @@ class DateTimeColumn : IColumn
             start = end;
         return new DateTimeColumn(name_, data_[start .. end]);
     }
-
-    DateTimeColumn dt_year() const
+    // Return TCol!int for integer components
+    TCol!int dt_year() const
     {
         auto result = new TCol!int(name_ ~ "_year");
         foreach (dt; data_)
         {
             result.append(dt.year);
         }
-        return cast(DateTimeColumn) result;
+        return result;
     }
 
-    DateTimeColumn dt_month() const
+    TCol!int dt_month() const
     {
         auto result = new TCol!int(name_ ~ "_month");
         foreach (dt; data_)
         {
             result.append(dt.month);
         }
-        return cast(DateTimeColumn) result;
+        return result;
     }
 
-    DateTimeColumn dt_day() const
+    TCol!int dt_day() const
     {
         auto result = new TCol!int(name_ ~ "_day");
         foreach (dt; data_)
         {
             result.append(dt.day);
         }
-        return cast(DateTimeColumn) result;
+        return result;
     }
 
-    DateTimeColumn dt_dayofweek() const
+    TCol!int dt_dayofweek() const
     {
         auto result = new TCol!int(name_ ~ "_dayofweek");
         foreach (dt; data_)
         {
             result.append(dt.dayOfWeek);
         }
-        return cast(DateTimeColumn) result;
+        return result;
     }
 
-    DateTimeColumn dt_strftime(string format) const
+    // Return TCol!string for formatted strings
+    TCol!string dt_strftime(string format) const
     {
         auto result = new TCol!string(name_ ~ "_formatted");
         foreach (dt; data_)
         {
             result.append(dt.strftime(format));
         }
-        return cast(DateTimeColumn) result;
+        return result;
     }
 
+    // These methods return actual DateTimeColumn since they preserve DateTime type
     DateTimeColumn dt_floor(string freq) const
     {
         auto result = new DateTimeColumn(name_ ~ "_floor");

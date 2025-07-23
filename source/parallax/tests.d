@@ -161,7 +161,7 @@ package unittest
     auto dtCol = dfWithDates.dt("date");
 
     writeln("\nExtracting date components:");
-    writeln("Years: ", dtCol.dt_year().getData()); //segfaults here.
+    writeln("Years: ", dtCol.dt_year().getData());
     writeln("Months: ", dtCol.dt_month().getData());
     writeln("Days: ", dtCol.dt_day().getData());
     writeln("Day names: ");
