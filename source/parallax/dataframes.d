@@ -551,16 +551,13 @@ class DataFrame
         import std.conv : to;
         import std.range : iota;
         import std.stdio : writeln;
+        import ark.ui : ArkTerm;
 
         writeln("DataFrame(", rows, " rows, ", cols, " columns)");
 
         size_t displayCols = min(maxCols, cols);
         size_t displayRows = min(maxRows, rows);
-
-        // Prepare headers
         string[] headers = columnNames_[0 .. displayCols];
-
-        // Prepare data
         string[][] tableData;
         foreach (i; 0 .. displayRows)
         {
@@ -571,9 +568,6 @@ class DataFrame
             }
             tableData ~= row;
         }
-
-        // Draw the table
-        import ark.ui : ArkTerm;
 
         ArkTerm.drawTable(headers, tableData);
 
