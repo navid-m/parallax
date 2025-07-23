@@ -34,10 +34,10 @@ unittest
         "50000", "60000", "70000", "80000", "55000", "50000", "65000"
     ];
     auto departments = ["IT", "HR", "IT", "Finance", "IT", "HR", "HR"];
-    auto nameCol = new TypedColumn!string("name", names.dup);
-    auto ageCol = new TypedColumn!string("age", ages.dup);
-    auto salaryCol = new TypedColumn!string("salary", salaries.dup);
-    auto deptCol = new TypedColumn!string("department", departments.dup);
+    auto nameCol = new TCol!string("name", names.dup);
+    auto ageCol = new TCol!string("age", ages.dup);
+    auto salaryCol = new TCol!string("salary", salaries.dup);
+    auto deptCol = new TCol!string("department", departments.dup);
     auto df = new DataFrame([
         cast(IColumn) nameCol, cast(IColumn) ageCol,
         cast(IColumn) salaryCol, cast(IColumn) deptCol

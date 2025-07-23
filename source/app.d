@@ -18,10 +18,10 @@ void benches_one()
 	];
 	auto departments = ["IT", "HR", "IT", "Finance", "IT", "HR", "HR"];
 
-	auto nameCol = new TypedColumn!string("name", names.dup);
-	auto ageCol = new TypedColumn!string("age", ages.dup);
-	auto salaryCol = new TypedColumn!string("salary", salaries.dup);
-	auto deptCol = new TypedColumn!string("department", departments.dup);
+	auto nameCol = new TCol!string("name", names.dup);
+	auto ageCol = new TCol!string("age", ages.dup);
+	auto salaryCol = new TCol!string("salary", salaries.dup);
+	auto deptCol = new TCol!string("department", departments.dup);
 	auto df = new DataFrame([
 		cast(IColumn) nameCol, cast(IColumn) ageCol,
 		cast(IColumn) salaryCol, cast(IColumn) deptCol
@@ -61,8 +61,8 @@ void benches_two()
 	auto count = 10_000_000;
 	auto ids = iota(0, count).array;
 	auto values = ids.map!(i => cast(double)(i) * 1.5).array;
-	auto idCol = new TypedColumn!int("id", ids);
-	auto valueCol = new TypedColumn!double("value", values);
+	auto idCol = new TCol!int("id", ids);
+	auto valueCol = new TCol!double("value", values);
 	auto df = new DataFrame([
 		cast(IColumn) idCol,
 		cast(IColumn) valueCol

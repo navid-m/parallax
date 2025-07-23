@@ -42,7 +42,7 @@ class DataFrame
             static if (isArray!(typeof(arr)))
             {
                 alias ElementType = typeof(arr[0]);
-                df.addColumn(new TypedColumn!ElementType(names[i], arr));
+                df.addColumn(new TCol!ElementType(names[i], arr));
             }
         }
         return df;
@@ -139,12 +139,12 @@ class DataFrame
             "count", "mean", "std", "min", "25%", "50%", "75%", "max"
         ];
         IColumn[] resultCols;
-        auto indexCol = new TypedColumn!string("", statNames.dup);
+        auto indexCol = new TCol!string("", statNames.dup);
         resultCols ~= cast(IColumn) indexCol;
 
         foreach (col; columns_)
         {
-            auto stringCol = cast(TypedColumn!string) col;
+            auto stringCol = cast(TCol!string) col;
             if (stringCol)
             {
                 double[] numericData;
@@ -166,7 +166,7 @@ class DataFrame
                     continue;
 
                 auto stats = calculateStats(numericData);
-                auto statCol = new TypedColumn!string(col.name, stats);
+                auto statCol = new TCol!string(col.name, stats);
                 resultCols ~= cast(IColumn) statCol;
             }
             else
@@ -186,7 +186,7 @@ class DataFrame
                 if (values.length > 0)
                 {
                     auto stats = calculateStats(values);
-                    auto statCol = new TypedColumn!string(col.name, stats);
+                    auto statCol = new TCol!string(col.name, stats);
                     resultCols ~= cast(IColumn) statCol;
                 }
             }
@@ -298,8 +298,8 @@ class DataFrame
             sortedCounts ~= countValues[idx];
         }
 
-        auto valueCol = new TypedColumn!string(colName, sortedValues);
-        auto countCol = new TypedColumn!int("count", sortedCounts);
+        auto valueCol = new TCol!string(colName, sortedValues);
+        auto countCol = new TCol!int("count", sortedCounts);
 
         return new DataFrame([cast(IColumn) valueCol, cast(IColumn) countCol]);
     }
@@ -313,10 +313,10 @@ class DataFrame
         {
             if (targetCols.canFind(col.name))
             {
-                auto stringCol = cast(TypedColumn!string) col;
+                auto stringCol = cast(TCol!string) col;
                 if (stringCol)
                 {
-                    auto newCol = new TypedColumn!string(col.name);
+                    auto newCol = new TCol!string(col.name);
                     string fillStr = fillValue.convertsTo!string ? fillValue.get!string : "0";
 
                     foreach (val; stringCol.getData())
@@ -373,12 +373,12 @@ class DataFrame
         string[] columnValues = uniqueCols.keys.sort().array;
 
         IColumn[] resultCols;
-        auto indexCol = new TypedColumn!string(index, indexValues.dup);
+        auto indexCol = new TCol!string(index, indexValues.dup);
         resultCols ~= cast(IColumn) indexCol;
 
         foreach (colVal; columnValues)
         {
-            auto pivotCol = new TypedColumn!string(colVal);
+            auto pivotCol = new TCol!string(colVal);
 
             foreach (idxVal; indexValues)
             {
@@ -440,7 +440,7 @@ class DataFrame
     {
         if (axis == 0)
         {
-            auto resultCol = new TypedColumn!string("result");
+            auto resultCol = new TCol!string("result");
 
             foreach (i; 0 .. rows)
             {
@@ -467,7 +467,7 @@ class DataFrame
                     colData ~= col.toString(i);
                 }
                 string result = to!string(func(colData));
-                auto resultCol = new TypedColumn!string(col.name, [result]);
+                auto resultCol = new TCol!string(col.name, [result]);
                 resultCols ~= cast(IColumn) resultCol;
             }
 
@@ -588,10 +588,10 @@ class DataFrame
         auto dataLines = lines[dataStart .. $];
         auto numThreads = totalCPUs;
         auto chunkSize = std.algorithm.max(1, dataLines.length / numThreads);
-        auto columns = new TypedColumn!string[](headers.length);
+        auto columns = new TCol!string[](headers.length);
 
         foreach (i, header; headers)
-            columns[i] = new TypedColumn!string(header);
+            columns[i] = new TCol!string(header);
 
         auto chunks = dataLines.chunks(chunkSize).array;
         auto results = new string[][][](chunks.length);
@@ -729,7 +729,7 @@ class DataFrame
         {
             try
             {
-                auto stringCol = cast(TypedColumn!string) col;
+                auto stringCol = cast(TCol!string) col;
                 if (stringCol)
                 {
                     continue;
@@ -752,7 +752,7 @@ class DataFrame
                         total += val.get!long;
                     }
                 }
-                resultCols ~= new TypedColumn!double(col.name, [total]);
+                resultCols ~= new TCol!double(col.name, [total]);
             }
             catch (Exception e)
             {
@@ -772,7 +772,7 @@ class DataFrame
         {
             try
             {
-                auto stringCol = cast(TypedColumn!string) col;
+                auto stringCol = cast(TCol!string) col;
                 if (stringCol)
                     continue;
 
@@ -801,7 +801,7 @@ class DataFrame
 
                 if (count > 0)
                 {
-                    resultCols ~= new TypedColumn!double(col.name, [
+                    resultCols ~= new TCol!double(col.name, [
                         total / count
                     ]);
                 }
@@ -824,7 +824,7 @@ class DataFrame
         {
             try
             {
-                auto stringCol = cast(TypedColumn!string) col;
+                auto stringCol = cast(TCol!string) col;
                 if (stringCol)
                 {
                     string maxVal = stringCol.getData()[0];
@@ -833,7 +833,7 @@ class DataFrame
                         if (val > maxVal)
                             maxVal = val;
                     }
-                    resultCols ~= new TypedColumn!string(col.name, [maxVal]);
+                    resultCols ~= new TCol!string(col.name, [maxVal]);
                     continue;
                 }
 
@@ -871,7 +871,7 @@ class DataFrame
 
                 if (hasValue)
                 {
-                    resultCols ~= new TypedColumn!double(col.name, [maxVal]);
+                    resultCols ~= new TCol!double(col.name, [maxVal]);
                 }
             }
             catch (Exception e)
@@ -892,7 +892,7 @@ class DataFrame
         {
             try
             {
-                auto stringCol = cast(TypedColumn!string) col;
+                auto stringCol = cast(TCol!string) col;
                 if (stringCol)
                 {
                     string minVal = stringCol.getData()[0];
@@ -901,7 +901,7 @@ class DataFrame
                         if (val < minVal)
                             minVal = val;
                     }
-                    resultCols ~= new TypedColumn!string(col.name, [minVal]);
+                    resultCols ~= new TCol!string(col.name, [minVal]);
                     continue;
                 }
 
@@ -939,7 +939,7 @@ class DataFrame
 
                 if (hasValue)
                 {
-                    resultCols ~= new TypedColumn!double(col.name, [minVal]);
+                    resultCols ~= new TCol!double(col.name, [minVal]);
                 }
             }
             catch (Exception e)
@@ -969,7 +969,7 @@ class DataFrame
 
         foreach (col; columns_)
         {
-            auto newCol = new TypedColumn!string(col.name);
+            auto newCol = new TCol!string(col.name);
             resultCols ~= cast(IColumn) newCol;
         }
 
@@ -977,7 +977,7 @@ class DataFrame
         {
             if (col.name != on)
             {
-                auto newCol = new TypedColumn!string(col.name);
+                auto newCol = new TCol!string(col.name);
                 resultCols ~= cast(IColumn) newCol;
             }
         }
@@ -993,7 +993,7 @@ class DataFrame
                 {
                     foreach (i, col; columns_)
                     {
-                        auto typedCol = cast(TypedColumn!string) resultCols[i];
+                        auto typedCol = cast(TCol!string) resultCols[i];
                         if (typedCol)
                         {
                             typedCol.append(col.toString(leftIdx));
@@ -1005,7 +1005,7 @@ class DataFrame
                     {
                         if (col.name != on)
                         {
-                            auto typedCol = cast(TypedColumn!string) resultCols[resultColIdx];
+                            auto typedCol = cast(TCol!string) resultCols[resultColIdx];
                             if (typedCol)
                             {
                                 if (rightIdx)
@@ -1070,10 +1070,10 @@ class DataFrame
         IColumn[] newCols;
         foreach (col; columns_)
         {
-            auto stringCol = cast(TypedColumn!string) col;
+            auto stringCol = cast(TCol!string) col;
             if (stringCol)
             {
-                auto newCol = new TypedColumn!string(col.name);
+                auto newCol = new TCol!string(col.name);
                 foreach (i; 0 .. rows)
                 {
                     if (keepRows[i])
@@ -1085,7 +1085,7 @@ class DataFrame
             }
             else
             {
-                auto newCol = new TypedColumn!string(col.name);
+                auto newCol = new TCol!string(col.name);
                 foreach (i; 0 .. rows)
                 {
                     if (keepRows[i])

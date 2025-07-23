@@ -45,7 +45,10 @@ interface IColumn
     IColumn copy();
 }
 
-class TypedColumn(T) : IColumn
+/** 
+ * A typed column.
+ */
+class TCol(T) : IColumn
 {
     private Column!T col;
 
@@ -83,12 +86,12 @@ class TypedColumn(T) : IColumn
 
     IColumn slice(size_t start, size_t end)
     {
-        return new TypedColumn!T(col.name, col.data[start .. end]);
+        return new TCol!T(col.name, col.data[start .. end]);
     }
 
     IColumn copy()
     {
-        return new TypedColumn!T(col.name, col.data.dup);
+        return new TCol!T(col.name, col.data.dup);
     }
 
     void append(T value)
