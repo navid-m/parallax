@@ -13,8 +13,10 @@ import std.array;
 import std.string;
 import std.file;
 import std.parallelism;
+import std.variant;
 
 DataFrame createDataFrame(T...)(string[] names, T data) => DataFrame.create(names, data);
+alias GroupedDataFrame = Variant[string];
 
 class DataFrame
 {
@@ -124,10 +126,45 @@ class DataFrame
         return new DataFrame(filteredCols);
     }
 
-    DataFrame groupBy(string colName)
+    GroupedDataFrame groupBy(string colName)
     {
-        // TODO: Actually implement groupBy.
-        return new DataFrame(columns_.map!(col => col.copy()).array);
+        import std.algorithm : uniq, sort;
+        import std.array : array;
+        import std.variant : Variant;
+        import std.conv : to;
+
+        auto groupColIndex = -1;
+        foreach (i, col; columns_)
+        {
+            if (col.name == colName)
+            {
+                groupColIndex = cast(int) i;
+                break;
+            }
+        }
+        enforce(groupColIndex != -1, "Group column not found: " ~ colName);
+
+        auto groupCol = columns_[groupColIndex];
+        Variant[] keys;
+        foreach (i; 0 .. groupCol.length)
+        {
+            keys ~= groupCol.getValue(i);
+        }
+
+        auto uniqueKeys = keys.sort.uniq.array;
+        GroupedDataFrame result;
+
+        foreach (key; uniqueKeys)
+        {
+            bool[] mask;
+            foreach (i; 0 .. groupCol.length)
+            {
+                mask ~= (groupCol.getValue(i) == key);
+            }
+            result[to!string(key)] = this.where(mask);
+        }
+
+        return result;
     }
 
     DataFrame describe()
