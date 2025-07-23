@@ -1270,10 +1270,6 @@ class FastCsvReader
 	}
 }
 
-void main()
-{
-}
-
 unittest
 {
 
