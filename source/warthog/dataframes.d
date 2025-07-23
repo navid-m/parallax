@@ -554,7 +554,7 @@ class DataFrame
             writeln("... (", cols - maxCols, " more columns)");
     }
 
-    void show(size_t maxRows = 10)
+    void show(size_t maxRows = 10, bool showIndex = false)
     {
         import std.algorithm : min;
         import std.conv : to;
@@ -566,15 +566,16 @@ class DataFrame
         size_t displayRows = min(maxRows, rows);
 
         string[] headers;
-        headers ~= "";
-        foreach (name; columnNames_)
-            headers ~= name;
+        if (showIndex)
+            headers ~= "";
+        headers ~= columnNames_[];
 
         string[][] tableData;
         foreach (i; 0 .. displayRows)
         {
             string[] row;
-            row ~= to!string(i);
+            if (showIndex)
+                row ~= to!string(i);
             foreach (col; columns_)
                 row ~= col.toString(i);
             tableData ~= row;
