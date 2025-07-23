@@ -1085,7 +1085,6 @@ class DataFrame
             }
             else
             {
-                // For other types, create string representation
                 auto newCol = new TypedColumn!string(col.name);
                 foreach (i; 0 .. rows)
                 {
