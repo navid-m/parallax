@@ -556,30 +556,34 @@ class DataFrame
 
     void show(size_t maxRows = 10)
     {
+        import std.algorithm : min;
+        import std.conv : to;
+        import std.stdio : writeln;
+        import ark.ui : ArkTerm;
+
         writeln("DataFrame(", rows, " rows, ", cols, " columns)");
 
-        write("   ");
-        foreach (name; columnNames_)
-        {
-            writef("%12s ", name);
-        }
-        writeln();
+        size_t displayRows = min(maxRows, rows);
 
-        size_t displayRows = std.algorithm.min(maxRows, rows);
+        string[] headers;
+        headers ~= "";
+        foreach (name; columnNames_)
+            headers ~= name;
+
+        string[][] tableData;
         foreach (i; 0 .. displayRows)
         {
-            writef("%3d ", i);
+            string[] row;
+            row ~= to!string(i);
             foreach (col; columns_)
-            {
-                writef("%12s ", col.toString(i));
-            }
-            writeln();
+                row ~= col.toString(i);
+            tableData ~= row;
         }
 
+        ArkTerm.drawTable(headers, tableData);
+
         if (rows > maxRows)
-        {
             writeln("... (", rows - maxRows, " more rows)");
-        }
     }
 
     static DataFrame readCsv(string filename, bool hasHeader = true, char delimiter = ',')
