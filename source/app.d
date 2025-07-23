@@ -323,18 +323,14 @@ class DataFrame
 		if (data.length == 0)
 			return ["0", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN"];
 
-		// Count (non-NaN values)
 		auto validData = data.filter!(x => !isNaN(x)).array;
 		auto count = validData.length;
 
 		if (count == 0)
 			return ["0", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN"];
 
-		// Mean
 		double sum = validData.sum;
 		double mean = sum / count;
-
-		// Standard deviation
 		double variance = validData.map!(x => (x - mean) * (x - mean)).sum / (count > 1 ? count - 1
 				: 1);
 		double std = sqrt(variance);
@@ -1225,7 +1221,6 @@ class DataFrame
 		return new DataFrame(newCols);
 	}
 
-	// Rename columns
 	DataFrame rename(string[string] mapping)
 	{
 		auto newCols = new IColumn[](cols);
@@ -1234,7 +1229,7 @@ class DataFrame
 			auto newCol = col.copy();
 			if (col.name in mapping)
 			{
-				// Would need to update column name in copy
+				// TODO: need to update column name in copy
 			}
 			newCols[i] = newCol;
 		}
@@ -1242,11 +1237,7 @@ class DataFrame
 	}
 }
 
-// Utility functions for creating DataFrames
-DataFrame createDataFrame(T...)(string[] names, T data)
-{
-	return DataFrame.create(names, data);
-}
+DataFrame createDataFrame(T...)(string[] names, T data) => DataFrame.create(names, data);
 
 unittest
 {
@@ -1273,7 +1264,7 @@ class FastCsvReader
 		auto file = File(filename, "r");
 		scope (exit)
 			file.close();
-		enum bufferSize = 64 * 1024; // 64KB buffer
+		enum bufferSize = 64 * 1024;
 		auto buffer = new char[bufferSize];
 		return new DataFrame();
 	}
