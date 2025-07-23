@@ -4,7 +4,7 @@
    "dependencies": {
       "ark": "~>0.2.9"
    },
-   "description": "A minimal D application.",
+   "description": "Pandas-like library for data science.",
    "license": "proprietary",
    "name": "parallax"
 }
