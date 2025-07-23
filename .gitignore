@@ -1,0 +1,17 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/warthog
+warthog.so
+warthog.dylib
+warthog.dll
+warthog.a
+.vscode
+warthog.lib
+warthog-test-*
+*.exe
+*.pdb
+*.o
+*.obj
+*.lst
