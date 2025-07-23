@@ -64,15 +64,8 @@ class DataFrame
         return columns_[nameToIndex_[colName]];
     }
 
-    DataValue opIndex(size_t row, string col)
-    {
-        return this[col].getValue(row);
-    }
-
-    DataValue opIndex(size_t row, size_t col)
-    {
-        return columns_[col].getValue(row);
-    }
+    DataValue opIndex(size_t row, string col) => this[col].getValue(row);
+    DataValue opIndex(size_t row, size_t col) => columns_[col].getValue(row);
 
     void opIndexAssign(DataValue value, size_t row, string col)
     {
@@ -84,25 +77,10 @@ class DataFrame
         columns_[col].setValue(row, value);
     }
 
-    @property size_t rows() const
-    {
-        return columns_.length > 0 ? columns_[0].length : 0;
-    }
-
-    @property size_t cols() const
-    {
-        return columns_.length;
-    }
-
-    @property string[] columns() const
-    {
-        return columnNames_.dup;
-    }
-
-    @property Tuple!(size_t, size_t) shape() const
-    {
-        return tuple(rows, cols);
-    }
+    @property size_t rows() const => columns_.length > 0 ? columns_[0].length : 0;
+    @property size_t cols() const => columns_.length;
+    @property string[] columns() const => columnNames_.dup;
+    @property Tuple!(size_t, size_t) shape() const => tuple(rows, cols);
 
     DataFrame opSlice(size_t rowStart, size_t rowEnd)
     {
