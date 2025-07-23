@@ -517,51 +517,36 @@ class DataFrame
 
     void showPivot(size_t maxRows = 20, size_t maxCols = 10)
     {
+        import std.algorithm : min;
+        import std.array : array;
+        import std.conv : to;
+        import std.range : iota;
+        import std.stdio : writeln;
+
         writeln("DataFrame(", rows, " rows, ", cols, " columns)");
 
-        size_t displayCols = std.algorithm.min(maxCols, cols);
-        size_t displayRows = std.algorithm.min(maxRows, rows);
+        size_t displayCols = min(maxCols, cols);
+        size_t displayRows = min(maxRows, rows);
 
-        size_t[] colWidths = new size_t[displayCols];
-        foreach (i; 0 .. displayCols)
-        {
-            colWidths[i] = std.algorithm.max(columnNames_[i].length, 8);
-            foreach (j; 0 .. displayRows)
-            {
-                colWidths[i] = std.algorithm.max(colWidths[i], columns_[i].toString(j).length);
-            }
-        }
+        // Prepare headers
+        string[] headers = columnNames_[0 .. displayCols];
 
-        write("   ");
-        foreach (i; 0 .. displayCols)
-        {
-            writef("%-*s ", colWidths[i], columnNames_[i]);
-        }
-        writeln();
-        write("   ");
-        foreach (i; 0 .. displayCols)
-        {
-            version (Windows)
-            {
-                import core.sys.windows.windows : SetConsoleOutputCP;
-
-                SetConsoleOutputCP(65_001);
-            }
-            foreach (j; 0 .. colWidths[i])
-                write("─");
-            write(" ");
-        }
-        writeln();
-
+        // Prepare data
+        string[][] tableData;
         foreach (i; 0 .. displayRows)
         {
-            writef("%3d ", i);
+            string[] row;
             foreach (j; 0 .. displayCols)
             {
-                writef("%-*s ", colWidths[j], columns_[j].toString(i));
+                row ~= columns_[j].toString(i);
             }
-            writeln();
+            tableData ~= row;
         }
+
+        // Draw the table
+        import ark.ui : ArkTerm;
+
+        ArkTerm.drawTable(headers, tableData);
 
         if (rows > maxRows)
             writeln("... (", rows - maxRows, " more rows)");
