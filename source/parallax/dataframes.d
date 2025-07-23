@@ -563,9 +563,7 @@ class DataFrame
         {
             string[] row;
             foreach (j; 0 .. displayCols)
-            {
                 row ~= columns_[j].toString(i);
-            }
             tableData ~= row;
         }
 
