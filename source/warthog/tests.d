@@ -10,7 +10,7 @@ import std.stdio;
 import std.datetime.stopwatch;
 import std.range;
 
-unittest
+package unittest
 {
     auto ages = [25, 30, 35, 40];
     auto names = ["Alice", "Bob", "Charlie", "David"];
@@ -27,7 +27,7 @@ unittest
     assert(selected.cols == 2);
 }
 
-unittest
+package unittest
 {
     auto names = ["Alice", "Bob", "Charlie", "David", "Eve", "Alice", "Bob"];
     auto ages = ["25", "30", "35", "40", "28", "25", "32"];
@@ -70,7 +70,7 @@ unittest
     applied.show();
 }
 
-unittest
+package unittest
 {
     auto names = ["Alice", "Bob", "Charlie", "David", "Eve", "Alice", "Bob"];
     auto ages = ["25", "30", "35", "40", "28", "25", "32"];
