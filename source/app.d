@@ -339,10 +339,8 @@ class DataFrame
 				: 1);
 		double std = sqrt(variance);
 
-		// Sort for percentiles
 		validData.sort();
 
-		// Min/Max
 		double min = validData[0];
 		double max = validData[$ - 1];
 
@@ -601,11 +599,9 @@ class DataFrame
 		}
 	}
 
-	// Additional helper methods needed for the above functions
 	private import std.format : format;
 	private import std.algorithm : minElement, maxElement, filter, canFind;
 
-	// Enhanced show method to display pivot tables nicely
 	void showPivot(size_t maxRows = 20, size_t maxCols = 10)
 	{
 		writeln("DataFrame(", rows, " rows, ", cols, " columns)");
@@ -613,7 +609,6 @@ class DataFrame
 		size_t displayCols = std.algorithm.min(maxCols, cols);
 		size_t displayRows = std.algorithm.min(maxRows, rows);
 
-		// Calculate column widths
 		size_t[] colWidths = new size_t[displayCols];
 		foreach (i; 0 .. displayCols)
 		{
@@ -624,7 +619,6 @@ class DataFrame
 			}
 		}
 
-		// Print header with proper spacing
 		write("   ");
 		foreach (i; 0 .. displayCols)
 		{
@@ -849,7 +843,6 @@ class DataFrame
 		return new DataFrame(newCols);
 	}
 
-	// Aggregation functions
 	DataFrame sum()
 	{
 		if (rows == 0)
@@ -860,15 +853,12 @@ class DataFrame
 		{
 			try
 			{
-				// Try to sum numeric columns
 				auto stringCol = cast(TypedColumn!string) col;
 				if (stringCol)
 				{
-					// Skip string columns for sum
 					continue;
 				}
 
-				// Check if it's a numeric column and compute sum
 				double total = 0.0;
 				foreach (i; 0 .. col.length)
 				{
@@ -890,7 +880,6 @@ class DataFrame
 			}
 			catch (Exception e)
 			{
-				// Skip non-numeric columns
 				continue;
 			}
 		}
@@ -962,7 +951,6 @@ class DataFrame
 				auto stringCol = cast(TypedColumn!string) col;
 				if (stringCol)
 				{
-					// For string columns, find lexicographically largest
 					string maxVal = stringCol.getData()[0];
 					foreach (val; stringCol.getData()[1 .. $])
 					{
@@ -1031,7 +1019,6 @@ class DataFrame
 				auto stringCol = cast(TypedColumn!string) col;
 				if (stringCol)
 				{
-					// For string columns, find lexicographically smallest
 					string minVal = stringCol.getData()[0];
 					foreach (val; stringCol.getData()[1 .. $])
 					{
@@ -1087,7 +1074,6 @@ class DataFrame
 		return new DataFrame(resultCols);
 	}
 
-	// Join operations
 	DataFrame merge(DataFrame other, string on, string how = "inner")
 	{
 		enforce(on in nameToIndex_, "Join column '" ~ on ~ "' not found in left DataFrame");
@@ -1096,7 +1082,6 @@ class DataFrame
 		auto leftKeyCol = this[on];
 		auto rightKeyCol = other[on];
 
-		// Build hash map for right DataFrame keys
 		size_t[string] rightKeyMap;
 		foreach (i; 0 .. other.rows)
 		{
@@ -1104,17 +1089,14 @@ class DataFrame
 			rightKeyMap[key] = i;
 		}
 
-		// Result columns: left columns + right columns (excluding join key)
 		IColumn[] resultCols;
 
-		// Add left columns
 		foreach (col; columns_)
 		{
 			auto newCol = new TypedColumn!string(col.name);
 			resultCols ~= cast(IColumn) newCol;
 		}
 
-		// Add right columns (excluding join key)
 		foreach (col; other.columns_)
 		{
 			if (col.name != on)
@@ -1124,7 +1106,6 @@ class DataFrame
 			}
 		}
 
-		// Perform join based on strategy
 		foreach (leftIdx; 0 .. rows)
 		{
 			auto leftKey = leftKeyCol.toString(leftIdx);
@@ -1134,7 +1115,6 @@ class DataFrame
 				auto rightIdx = leftKey in rightKeyMap;
 				if (rightIdx || how == "left")
 				{
-					// Add left row data
 					foreach (i, col; columns_)
 					{
 						auto typedCol = cast(TypedColumn!string) resultCols[i];
@@ -1144,7 +1124,6 @@ class DataFrame
 						}
 					}
 
-					// Add right row data
 					size_t resultColIdx = columns_.length;
 					foreach (col; other.columns_)
 					{
@@ -1159,7 +1138,7 @@ class DataFrame
 								}
 								else
 								{
-									typedCol.append(""); // null equivalent
+									typedCol.append("");
 								}
 							}
 							resultColIdx++;
@@ -1172,14 +1151,12 @@ class DataFrame
 		return new DataFrame(resultCols);
 	}
 
-	// Copy operation
 	DataFrame copy()
 	{
 		auto newCols = columns_.map!(col => col.copy()).array;
 		return new DataFrame(newCols);
 	}
 
-	// Drop operations
 	DataFrame drop(string[] colNames...)
 	{
 		IColumn[] keepCols;
@@ -1198,7 +1175,6 @@ class DataFrame
 		if (rows == 0)
 			return new DataFrame();
 
-		// Identify rows with null/empty values
 		bool[] keepRows = new bool[rows];
 		keepRows[] = true;
 
@@ -1215,7 +1191,6 @@ class DataFrame
 			}
 		}
 
-		// Create new columns with non-null rows
 		IColumn[] newCols;
 		foreach (col; columns_)
 		{
@@ -1273,46 +1248,33 @@ DataFrame createDataFrame(T...)(string[] names, T data)
 	return DataFrame.create(names, data);
 }
 
-// Example usage and testing
 unittest
 {
-	// Create test data
 	auto ages = [25, 30, 35, 40];
 	auto names = ["Alice", "Bob", "Charlie", "David"];
 	auto salaries = [50_000.0, 60_000.0, 70_000.0, 80_000.0];
-
-	// Create DataFrame
 	auto df = createDataFrame(["name", "age", "salary"], names, ages, salaries);
 
-	// Test basic operations
 	assert(df.rows == 4);
 	assert(df.cols == 3);
 
-	// Test slicing
 	auto head = df.head(2);
 	assert(head.rows == 2);
 
-	// Test column selection
 	auto selected = df.select("name", "age");
 	assert(selected.cols == 2);
 
 }
 
-// Performance optimized CSV reader for large files
 class FastCsvReader
 {
 	static DataFrame readLargeCsv(string filename, bool hasHeader = true)
 	{
-		// Memory-mapped file reading for very large CSVs
 		auto file = File(filename, "r");
 		scope (exit)
 			file.close();
-
-		// Use buffered reading and parallel processing
 		enum bufferSize = 64 * 1024; // 64KB buffer
 		auto buffer = new char[bufferSize];
-
-		// Would implement streaming CSV parser here
 		return new DataFrame();
 	}
 }
@@ -1324,19 +1286,16 @@ void main()
 unittest
 {
 
-	// Create sample data
 	auto names = ["Alice", "Bob", "Charlie", "David", "Eve", "Alice", "Bob"];
 	auto ages = ["25", "30", "35", "40", "28", "25", "32"];
 	auto salaries = [
 		"50000", "60000", "70000", "80000", "55000", "50000", "65000"
 	];
 	auto departments = ["IT", "HR", "IT", "Finance", "IT", "HR", "HR"];
-
 	auto nameCol = new TypedColumn!string("name", names.dup);
 	auto ageCol = new TypedColumn!string("age", ages.dup);
 	auto salaryCol = new TypedColumn!string("salary", salaries.dup);
 	auto deptCol = new TypedColumn!string("department", departments.dup);
-
 	auto df = new DataFrame([
 		cast(IColumn) nameCol, cast(IColumn) ageCol,
 		cast(IColumn) salaryCol, cast(IColumn) deptCol
