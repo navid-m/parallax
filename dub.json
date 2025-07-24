@@ -4,7 +4,7 @@
    "dependencies": {
       "ark": "~>0.2.9"
    },
-   "description": "Pandas-like library for data science.",
+   "description": "Pandas-like dataframes library for data science.",
    "license": "GPL-3.0",
    "name": "parallax"
 }
