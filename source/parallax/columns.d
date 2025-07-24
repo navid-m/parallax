@@ -2,6 +2,9 @@ module parallax.columns;
 
 import parallax.values;
 
+/** 
+ * Some column in a dataframe.
+ */
 class Column(T)
 {
     T[] data;
@@ -13,25 +16,44 @@ class Column(T)
         this.data = data;
     }
 
+    /** 
+     * Append a value to a column.
+     *
+     * Params:
+     *   value = The value to add, generically typed
+     */
     void append(T value)
     {
         data ~= value;
     }
 
-    T opIndex(size_t idx) const
-    {
-        return data[idx];
-    }
+    /** 
+     * Get back some value by index.
+     *
+     * Params:
+     *   idx = The index
+     * Returns: The corresponding value
+     */
+    T opIndex(size_t idx) const => data[idx];
 
+    /** 
+     * Assign by index.
+     *
+     * Params:
+     *   value = Value to assign
+     *   idx = The corresponding index of the value to replace
+     */
     void opIndexAssign(T value, size_t idx)
     {
         data[idx] = value;
     }
 
-    @property size_t length() const
-    {
-        return data.length;
-    }
+    /** 
+     * Get the data length of the column.
+     *
+     * Returns: Length of the data
+     */
+    @property size_t length() const => data.length;
 }
 
 interface IColumn
@@ -57,43 +79,58 @@ class TCol(T) : IColumn
         col = new Column!T(name, data);
     }
 
-    @property string name() const
-    {
-        return col.name;
-    }
+    /** 
+     * Get the name of the typed column.
+     *
+     * Returns: Name of the typed column
+     */
+    @property string name() const => col.name;
 
-    @property size_t length() const
-    {
-        return col.length;
-    }
+    /** 
+     * Get the length of the column
+     *
+     * Returns: Column length
+     */
+    @property size_t length() const => col.length;
 
+    /** 
+     * Get some value by index from the typed column.
+     *
+     * Params:
+     *   idx = The index
+     * Returns: The corresponding data value
+     */
     DataValue getValue(size_t idx)
     {
         return DataValue(col[idx]);
     }
 
+    /** 
+     * Set some value by index.
+     *
+     * Params:
+     *   idx = The index
+     *   value = The value to assign
+     */
     void setValue(size_t idx, DataValue value)
     {
         col[idx] = value.get!T;
     }
 
+    /** 
+     * Stringer function for a cell (by index) of the column.
+     *
+     * Returns: The string representation of the typed column cell.
+     */
     string toString(size_t idx) const
     {
         import std.conv;
 
-        return to!string(col[idx]); //mutable method `parallax.columns.Column!int.Column.opIndex` is not callable using a `const` objectDUB
-
+        return to!string(col[idx]);
     }
 
-    IColumn slice(size_t start, size_t end)
-    {
-        return new TCol!T(col.name, col.data[start .. end]);
-    }
-
-    IColumn copy()
-    {
-        return new TCol!T(col.name, col.data.dup);
-    }
+    IColumn slice(size_t start, size_t end) => new TCol!T(col.name, col.data[start .. end]);
+    IColumn copy() => new TCol!T(col.name, col.data.dup);
 
     void append(T value)
     {
