@@ -65,6 +65,8 @@ interface IColumn
     string toString(size_t idx) const;
     IColumn slice(size_t start, size_t end);
     IColumn copy();
+    IColumn filter(bool[] mask);
+    IColumn createEmpty();
 }
 
 /** 
@@ -72,6 +74,8 @@ interface IColumn
  */
 class TCol(T) : IColumn
 {
+    import std.exception;
+
     private Column!T col;
 
     this(string name, T[] data = [])
@@ -140,5 +144,33 @@ class TCol(T) : IColumn
     T[] getData()
     {
         return col.data;
+    }
+
+    IColumn createEmpty()
+    {
+        return new TCol!T(col.name, []);
+    }
+
+    IColumn filter(bool[] mask)
+    {
+        enforce(mask.length == col.length, "Mask length must match column length");
+        T[] filteredData;
+        size_t trueCount = 0;
+        foreach (val; mask)
+        {
+            if (val)
+                trueCount++;
+        }
+        filteredData.reserve(trueCount);
+
+        foreach (i, include; mask)
+        {
+            if (include)
+            {
+                filteredData ~= col.data[i];
+            }
+        }
+
+        return new TCol!T(col.name, filteredData);
     }
 }

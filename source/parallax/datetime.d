@@ -507,6 +507,39 @@ class DateTimeColumn : IColumn
     {
         return data_.dup;
     }
+
+    IColumn createEmpty()
+    {
+        return new DateTimeColumn(name_, []);
+    }
+
+    IColumn filter(bool[] mask)
+    {
+        import std.exception;
+
+        enforce(mask.length == data_.length, "Mask length must match column length");
+
+        ParallaxDateTime[] filteredData;
+
+        size_t trueCount = 0;
+        foreach (val; mask)
+        {
+            if (val)
+                trueCount++;
+        }
+        filteredData.reserve(trueCount);
+
+        foreach (i, include; mask)
+        {
+            if (include)
+            {
+                filteredData ~= data_[i];
+            }
+        }
+
+        return new DateTimeColumn(name_, filteredData);
+    }
+
 }
 
 ParallaxDateTime[] dateRange(ParallaxDateTime start, ParallaxDateTime end, Duration freq)

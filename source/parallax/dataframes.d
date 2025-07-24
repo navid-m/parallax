@@ -139,13 +139,25 @@ class DataFrame
     DataFrame where(bool[] mask)
     {
         enforce(mask.length == rows, "Mask length must match number of rows");
-
+        size_t filteredRowCount = 0;
+        foreach (include; mask)
+        {
+            if (include)
+                filteredRowCount++;
+        }
+        if (filteredRowCount == 0)
+        {
+            IColumn[] emptyCols;
+            foreach (col; columns_)
+            {
+                emptyCols ~= col.createEmpty();
+            }
+            return new DataFrame(emptyCols);
+        }
         IColumn[] filteredCols;
         foreach (col; columns_)
         {
-            auto newCol = col.copy();
-            // TODO: Implement proper filtering.
-            filteredCols ~= newCol;
+            filteredCols ~= col.filter(mask);
         }
         return new DataFrame(filteredCols);
     }
