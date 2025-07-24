@@ -2,7 +2,7 @@
 
 Parallax is a powerful pandas/polars-like DataFrames library.
 
-It provides an intuitive interface for data analysis, transformation, and time series manipulation.
+It has good functionality for data analysis, transformation, and time series manipulation.
 
 ## Usage
 
