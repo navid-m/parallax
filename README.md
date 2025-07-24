@@ -125,19 +125,3 @@ summary.showPivot();
 auto df = readCsv("data.csv");
 df.toCsv("output.csv");
 ```
-
----
-
-## Example Tests
-
-```d
-assert(df.rows == 4);
-assert(df.cols == 3);
-assert(df.head(2).rows == 2);
-
-auto pivot = df.pivotTable("salary", "department", "name", "mean");
-pivot.showPivot();
-
-auto counts = df.valueCounts("name");
-counts.show();
-```
