@@ -107,6 +107,18 @@ summary.showPivot();
 
 ---
 
+## Modules
+
+| Module                | Purpose                                 |
+| --------------------- | --------------------------------------- |
+| `parallax.dataframes` | Core DataFrame class and utilities      |
+| `parallax.columns`    | Column types and column management      |
+| `parallax.csv`        | CSV reader/writer                       |
+| `parallax.values`     | Generic value abstraction (`DataValue`) |
+| `parallax.datetime`   | Datetime parsing and time logic         |
+
+---
+
 ### CSV I/O
 
 ```d
@@ -129,28 +141,3 @@ pivot.showPivot();
 auto counts = df.valueCounts("name");
 counts.show();
 ```
-
-## Time Series Data Example
-
-```d
-auto df = createDataFrame(["date", "price"], [
-    "2023-01-15 09:30:00",
-    "2023-02-20 14:45:30"
-], [100.5, 105.2]);
-
-df = df.toDatetime("date");
-auto dt = df.dt("date");
-writeln(dt.dt_year().getData()); // [2023, 2023]
-```
-
-## Modules
-
-| Module                | Purpose                                 |
-| --------------------- | --------------------------------------- |
-| `parallax.dataframes` | Core DataFrame class and utilities      |
-| `parallax.columns`    | Column types and column management      |
-| `parallax.csv`        | CSV reader/writer                       |
-| `parallax.values`     | Generic value abstraction (`DataValue`) |
-| `parallax.datetime`   | Datetime parsing and time logic         |
-
----
