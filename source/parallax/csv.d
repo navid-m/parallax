@@ -3,7 +3,7 @@ module parallax.csv;
 import parallax.dataframes;
 import std.stdio;
 
-class FastCsvReader
+class CsvReader
 {
     static DataFrame readLargeCsv(string filename, bool hasHeader = true)
     {
