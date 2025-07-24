@@ -159,6 +159,11 @@ struct ParallaxDateTime
         return timestamp == other.timestamp;
     }
 
+    string toHash() const
+    {
+        return this.toString();
+    }
+
     string toString() const
     {
         return timestamp.toISOExtString();

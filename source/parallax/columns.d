@@ -18,7 +18,7 @@ class Column(T)
         data ~= value;
     }
 
-    T opIndex(size_t idx)
+    T opIndex(size_t idx) const
     {
         return data[idx];
     }
@@ -40,7 +40,7 @@ interface IColumn
     @property size_t length() const;
     DataValue getValue(size_t idx);
     void setValue(size_t idx, DataValue value);
-    string toString(size_t idx);
+    string toString(size_t idx) const;
     IColumn slice(size_t start, size_t end);
     IColumn copy();
 }
@@ -77,11 +77,12 @@ class TCol(T) : IColumn
         col[idx] = value.get!T;
     }
 
-    string toString(size_t idx)
+    string toString(size_t idx) const
     {
         import std.conv;
 
-        return to!string(col[idx]);
+        return to!string(col[idx]); //mutable method `parallax.columns.Column!int.Column.opIndex` is not callable using a `const` objectDUB
+
     }
 
     IColumn slice(size_t start, size_t end)
