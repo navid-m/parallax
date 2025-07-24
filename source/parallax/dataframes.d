@@ -16,8 +16,17 @@ import std.parallelism;
 import std.variant;
 
 DataFrame createDataFrame(T...)(string[] names, T data) => DataFrame.create(names, data);
+
+/** 
+ * A mapping of string to variant.
+ * 
+ * Represents a group of dataframes.
+ */
 alias GroupedDataFrame = Variant[string];
 
+/** 
+ * A container for regular numerical and time-series related data.
+ */
 class DataFrame
 {
     private IColumn[] columns_;
@@ -36,6 +45,15 @@ class DataFrame
         }
     }
 
+    /** 
+     * Get back a dataframe given some configuration.
+     *
+     * Params:
+     *   names = Names of columns
+     *   arrays = Column content
+     *
+     * Returns: The dataframe
+     */
     static DataFrame create(T...)(string[] names, T arrays)
     {
         auto df = new DataFrame();
@@ -50,6 +68,12 @@ class DataFrame
         return df;
     }
 
+    /** 
+     * Add a column to this dataframe.
+     *
+     * Params:
+     *   col = Column to add
+     */
     private void addColumn(IColumn col)
     {
         columns_ ~= col;

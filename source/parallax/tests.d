@@ -209,7 +209,7 @@ package unittest
     double[] satisfaction = [4.2, 4.5, 3.8, 4.1];
 
     auto hospitalDf = createDataFrame(
-        [
+    [
         "hospital", "beds", "patients", "occupancy_rate", "patient_satisfaction"
     ],
         hospitals, beds, patients, occupancy, satisfaction
