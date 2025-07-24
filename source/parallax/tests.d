@@ -130,7 +130,6 @@ package unittest
         cast(IColumn) valueCol
     ]);
     writeln("Created in ", sw2.peek.total!"seconds", " seconds");
-
 }
 
 package unittest
