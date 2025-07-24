@@ -364,6 +364,9 @@ private ParallaxDateTime parseWithFormat(string dateStr, string format)
     return ParallaxDateTime(year, month, day, hour, minute, second);
 }
 
+/** 
+ * A time series column.
+ */
 class DateTimeColumn : IColumn
 {
     private ParallaxDateTime[] data_;
@@ -430,7 +433,7 @@ class DateTimeColumn : IColumn
             start = end;
         return new DateTimeColumn(name_, data_[start .. end]);
     }
-    // Return TCol!int for integer components
+
     TCol!int dt_year() const
     {
         auto result = new TCol!int(name_ ~ "_year");
@@ -471,7 +474,6 @@ class DateTimeColumn : IColumn
         return result;
     }
 
-    // Return TCol!string for formatted strings
     TCol!string dt_strftime(string format) const
     {
         auto result = new TCol!string(name_ ~ "_formatted");
@@ -482,7 +484,9 @@ class DateTimeColumn : IColumn
         return result;
     }
 
-    // These methods return actual DateTimeColumn since they preserve DateTime type
+    /**
+    * Returns actual DateTimeColumn since it preserves DateTime type.
+    */
     DateTimeColumn dt_floor(string freq) const
     {
         auto result = new DateTimeColumn(name_ ~ "_floor");
