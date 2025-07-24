@@ -78,7 +78,6 @@ package unittest
         "50000", "60000", "70000", "80000", "55000", "50000", "65000"
     ];
     auto departments = ["IT", "HR", "IT", "Finance", "IT", "HR", "HR"];
-
     auto nameCol = new TCol!string("name", names.dup);
     auto ageCol = new TCol!string("age", ages.dup);
     auto salaryCol = new TCol!string("salary", salaries.dup);
@@ -179,4 +178,56 @@ package unittest
     }
 
     writeln;
+}
+
+package unittest
+{
+    string[] ids = ["A", "B", "C"];
+    string[] val1 = ["10", "20", ""];
+    string[] val2 = ["", "25", "35"];
+    string[] val3 = ["15", "", "40"];
+
+    auto dfWithMissing = createDataFrame(
+        ["id", "metric1", "metric2", "metric3"],
+        ids, val1, val2, val3
+    );
+
+    writeln("Data with missing values:");
+    dfWithMissing.show();
+
+    auto meltedWithMissing = dfWithMissing.meltAllExcept("id");
+    writeln("\nMelted data (missing values preserved):");
+    meltedWithMissing.show();
+    writeln();
+}
+
+package unittest
+{
+    string[] hospitals = ["General", "Memorial", "Regional", "County"];
+    int[] beds = [250, 180, 320, 150];
+    int[] patients = [230, 165, 295, 140];
+    double[] occupancy = [0.92, 0.92, 0.92, 0.93];
+    double[] satisfaction = [4.2, 4.5, 3.8, 4.1];
+
+    auto hospitalDf = createDataFrame(
+        [
+        "hospital", "beds", "patients", "occupancy_rate", "patient_satisfaction"
+    ],
+        hospitals, beds, patients, occupancy, satisfaction
+    );
+
+    writeln("Original hospital data:");
+    hospitalDf.show();
+
+    auto capacityMelted = hospitalDf.melt(["hospital"], ["beds", "patients"],
+        "capacity_type", "count");
+    writeln("\nCapacity metrics (melted):");
+    capacityMelted.show();
+
+    auto qualityMelted = hospitalDf.melt(["hospital"], [
+        "occupancy_rate", "patient_satisfaction"
+    ],
+    "quality_metric", "score");
+    writeln("\nQuality metrics (melted):");
+    qualityMelted.show();
 }

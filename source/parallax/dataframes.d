@@ -455,6 +455,230 @@ class DataFrame
         return new DataFrame([cast(IColumn) periodCol, cast(IColumn) valueCol2]);
     }
 
+    DataFrame melt(string[] id_vars = [], string[] value_vars = [],
+        string var_name = "variable", string value_name = "value")
+    {
+        if (value_vars.length == 0)
+        {
+            foreach (colName; columnNames_)
+            {
+                if (!id_vars.canFind(colName))
+                {
+                    value_vars ~= colName;
+                }
+            }
+        }
+
+        foreach (col; id_vars)
+        {
+            enforce(col in nameToIndex_, "ID variable column not found: " ~ col);
+        }
+        foreach (col; value_vars)
+        {
+            enforce(col in nameToIndex_, "Value variable column not found: " ~ col);
+        }
+
+        size_t resultRows = rows * value_vars.length;
+
+        IColumn[] resultCols;
+
+        foreach (idVar; id_vars)
+        {
+            auto originalCol = this[idVar];
+            auto newCol = new TCol!string(idVar);
+
+            foreach (i; 0 .. rows)
+            {
+                string value = originalCol.toString(i);
+                foreach (j; 0 .. value_vars.length)
+                {
+                    newCol.append(value);
+                }
+            }
+
+            resultCols ~= cast(IColumn) newCol;
+        }
+
+        auto varCol = new TCol!string(var_name);
+        foreach (i; 0 .. rows)
+        {
+            foreach (valueVar; value_vars)
+            {
+                varCol.append(valueVar);
+            }
+        }
+        resultCols ~= cast(IColumn) varCol;
+
+        auto valueCol = new TCol!string(value_name);
+        foreach (i; 0 .. rows)
+        {
+            foreach (valueVar; value_vars)
+            {
+                auto originalCol = this[valueVar];
+                valueCol.append(originalCol.toString(i));
+            }
+        }
+        resultCols ~= cast(IColumn) valueCol;
+
+        return new DataFrame(resultCols);
+    }
+
+    /**
+    * Convenience overload for melting with a single id variable
+    */
+    DataFrame melt(string id_var, string[] value_vars = [],
+        string var_name = "variable", string value_name = "value")
+    {
+        return melt([id_var], value_vars, var_name, value_name);
+    }
+
+    /**
+    * Convenience overload for melting all columns except one id variable
+    */
+    DataFrame meltAllExcept(string id_var, string var_name = "variable", string value_name = "value")
+    {
+        return melt([id_var], [], var_name, value_name);
+    }
+
+    /**
+    * Wide to long transformation with multiple value columns
+    * More advanced melt that can handle multiple value column sets
+    */
+    DataFrame meltMultiple(string[] id_vars, string[][] value_var_groups,
+        string[] var_names, string[] value_names)
+    {
+        enforce(value_var_groups.length == var_names.length &&
+                var_names.length == value_names.length,
+            "Number of value variable groups must match number of variable and value names");
+
+        DataFrame result;
+
+        foreach (i, valueVars; value_var_groups)
+        {
+            auto melted = melt(id_vars, valueVars, var_names[i], value_names[i]);
+
+            if (i == 0)
+            {
+                result = melted;
+            }
+            else
+            {
+                auto newCols = new IColumn[](result.cols + melted.cols - id_vars.length);
+                foreach (j, col; result.columns_)
+                {
+                    newCols[j] = col.copy();
+                }
+                size_t newColIndex = result.cols;
+                foreach (j, col; melted.columns_)
+                {
+                    if (!id_vars.canFind(col.name))
+                    {
+                        newCols[newColIndex] = col.copy();
+                        newColIndex++;
+                    }
+                }
+
+                result = new DataFrame(newCols[0 .. newColIndex]);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+    * Reverse operation: pivot (unpivot the melted data back to wide format)
+    * This complements the melt operation
+    */
+    DataFrame unmelt(string index_col, string var_col, string value_col)
+    {
+        auto varColumn = this[var_col];
+        bool[string] uniqueVars;
+        foreach (i; 0 .. varColumn.length)
+        {
+            uniqueVars[varColumn.toString(i)] = true;
+        }
+        auto newColNames = uniqueVars.keys.sort().array;
+        auto indexColumn = this[index_col];
+        bool[string] uniqueIndices;
+        foreach (i; 0 .. indexColumn.length)
+        {
+            uniqueIndices[indexColumn.toString(i)] = true;
+        }
+        auto indexValues = uniqueIndices.keys.sort().array;
+        IColumn[] resultCols;
+        auto newIndexCol = new TCol!string(index_col, indexValues.dup);
+        resultCols ~= cast(IColumn) newIndexCol;
+        auto valueColumn = this[value_col];
+        foreach (varName; newColNames)
+        {
+            auto newCol = new TCol!string(varName);
+
+            foreach (indexVal; indexValues)
+            {
+                string foundValue = "";
+
+                foreach (i; 0 .. rows)
+                {
+                    if (indexColumn.toString(i) == indexVal &&
+                        varColumn.toString(i) == varName)
+                    {
+                        foundValue = valueColumn.toString(i);
+                        break;
+                    }
+                }
+
+                newCol.append(foundValue);
+            }
+
+            resultCols ~= cast(IColumn) newCol;
+        }
+
+        return new DataFrame(resultCols);
+    }
+
+    DataFrame stack(string[] columns_to_stack, string level_name = "level_1")
+    {
+        if (columns_to_stack.length == 0)
+            return this.copy();
+        string[] id_columns;
+        foreach (colName; columnNames_)
+        {
+            if (!columns_to_stack.canFind(colName))
+            {
+                id_columns ~= colName;
+            }
+        }
+        return melt(id_columns, columns_to_stack, level_name, "value");
+    }
+
+    /**
+    * Unstack operation - reverse of stack
+    */
+    DataFrame unstack(string level_col, string value_col)
+    {
+        return unmelt("", level_col, value_col);
+    }
+
+    /**
+    * Cross-tabulation using melt as a helper
+    */
+    DataFrame crosstab(
+        string index_col,
+        string columns_col,
+        string values_col = "",
+        string aggfunc = "count"
+    )
+    {
+        if (values_col == "")
+        {
+            return this.pivotTable("", index_col, columns_col, "count");
+        }
+        else
+        {
+            return this.pivotTable(values_col, index_col, columns_col, aggfunc);
+        }
+    }
+
     /**
     * Calculate rolling window statistics over time
     */
