@@ -3,7 +3,6 @@ module parallax.tests;
 import parallax.columns;
 import parallax.values;
 import parallax.dataframes;
-import parallax.csv;
 import std.array;
 import std.algorithm;
 import std.stdio;
