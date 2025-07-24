@@ -518,10 +518,9 @@ ParallaxDateTime[] dateRange(ParallaxDateTime start, ParallaxDateTime end, Durat
     return result;
 }
 
-ParallaxDateTime[] dateRange(string start, string end, Duration freq)
-{
-    return dateRange(parseDateTime(start), parseDateTime(end), freq);
-}
+ParallaxDateTime[] dateRange(string start, string end, Duration freq) => dateRange(
+    parseDateTime(start), parseDateTime(end), freq
+);
 
 ParallaxDateTime[] dateRange(ParallaxDateTime start, int periods, Duration freq)
 {
