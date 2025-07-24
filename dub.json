@@ -5,6 +5,6 @@
       "ark": "~>0.2.9"
    },
    "description": "Pandas-like library for data science.",
-   "license": "proprietary",
+   "license": "GPL-3.0",
    "name": "parallax"
 }
