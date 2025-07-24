@@ -388,6 +388,11 @@ class DateTimeColumn : IColumn
         return data_.length;
     }
 
+    IColumn copyWithName(string newName)
+    {
+        return new DateTimeColumn(newName, data_);
+    }
+
     void append(ParallaxDateTime value)
     {
         data_ ~= value;

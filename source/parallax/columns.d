@@ -68,6 +68,7 @@ interface IColumn
     IColumn filter(bool[] mask);
     IColumn createEmpty();
     IColumn reorder(size_t[] indices);
+    IColumn copyWithName(string newName);
 }
 
 /** 
@@ -150,6 +151,11 @@ class TCol(T) : IColumn
     IColumn createEmpty()
     {
         return new TCol!T(col.name, []);
+    }
+
+    IColumn copyWithName(string newName)
+    {
+        return new TCol!T(newName, col.data.dup);
     }
 
     IColumn reorder(size_t[] indices)

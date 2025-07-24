@@ -1999,12 +1999,14 @@ class DataFrame
         auto newCols = new IColumn[](cols);
         foreach (i, col; columns_)
         {
-            auto newCol = col.copy();
             if (col.name in mapping)
             {
-                // TODO: need to update column name in copy
+                newCols[i] = col.copyWithName(mapping[col.name]);
             }
-            newCols[i] = newCol;
+            else
+            {
+                newCols[i] = col.copy();
+            }
         }
         return new DataFrame(newCols);
     }
