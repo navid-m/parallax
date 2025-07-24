@@ -67,6 +67,7 @@ interface IColumn
     IColumn copy();
     IColumn filter(bool[] mask);
     IColumn createEmpty();
+    IColumn reorder(size_t[] indices);
 }
 
 /** 
@@ -149,6 +150,19 @@ class TCol(T) : IColumn
     IColumn createEmpty()
     {
         return new TCol!T(col.name, []);
+    }
+
+    IColumn reorder(size_t[] indices)
+    {
+        T[] reorderedData;
+        reorderedData.reserve(indices.length);
+
+        foreach (idx; indices)
+        {
+            reorderedData ~= col.data[idx];
+        }
+
+        return new TCol!T(col.name, reorderedData);
     }
 
     IColumn filter(bool[] mask)

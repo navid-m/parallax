@@ -1576,24 +1576,41 @@ class DataFrame
 
     DataFrame sortValues(string colName, bool ascending = true)
     {
-        // TODO: Sort properly.
+        enforce(colName in nameToIndex_, "Column '" ~ colName ~ "' not found");
+
         auto colIdx = nameToIndex_[colName];
         auto indices = iota(0, rows).array;
 
-        indices.sort!((a, b) => columns_[colIdx].toString(a) < columns_[colIdx].toString(b));
+        indices.sort!((a, b) {
+            auto valA = columns_[colIdx].toString(a);
+            auto valB = columns_[colIdx].toString(b);
 
-        if (!ascending)
+            import std.conv : to;
+            import std.string : isNumeric;
+
+            if (valA.isNumeric && valB.isNumeric)
+            {
+                try
+                {
+                    auto numA = to!double(valA);
+                    auto numB = to!double(valB);
+                    return ascending ? numA < numB : numA > numB;
+                }
+                catch (Exception e)
+                {
+                }
+            }
+
+            return ascending ? valA < valB : valA > valB;
+        });
+
+        IColumn[] reorderedCols;
+        foreach (col; columns_)
         {
-            indices.reverse();
+            reorderedCols ~= col.reorder(indices);
         }
 
-        auto newCols = new IColumn[](cols);
-        foreach (i, col; columns_)
-        {
-            newCols[i] = col.copy();
-        }
-
-        return new DataFrame(newCols);
+        return new DataFrame(reorderedCols);
     }
 
     DataFrame sum()

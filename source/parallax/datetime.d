@@ -484,6 +484,19 @@ class DateTimeColumn : IColumn
         return result;
     }
 
+    IColumn reorder(size_t[] indices)
+    {
+        ParallaxDateTime[] reorderedData;
+        reorderedData.reserve(indices.length);
+
+        foreach (idx; indices)
+        {
+            reorderedData ~= data_[idx];
+        }
+
+        return new DateTimeColumn(name_, reorderedData);
+    }
+
     /**
     * Returns actual DateTimeColumn since it preserves DateTime type.
     */
