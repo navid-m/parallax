@@ -9,20 +9,47 @@ It has good functionality for data analysis, transformation, and time series man
 ```d
 import parallax.dataframes;
 
-auto df = createDataFrame(
-    ["name", "age", "salary"],
-    ["Alice", "Bob", "Charlie"],
-    [25, 30, 35],
-    [50000.0, 60000.0, 70000.0]
-);
+void main()
+{
+    auto df = createDataFrame(
+        ["name", "age", "salary"],
+        ["Alice", "Bob", "Charlie"],
+        [25, 30, 35],
+        [50000.0, 60000.0, 70000.0]
+    );
 
-df.show();
+    df.show();
+    auto head = df.head(2);
+    auto selected = df.select("name", "salary");
+    auto summary = df.describe();
+    summary.showPivot();
+}
+```
 
-auto head = df.head(2);
-auto selected = df.select("name", "salary");
+Will output:
 
-auto summary = df.describe();
-summary.showPivot();
+```
+DataFrame(3 rows, 3 columns)
+┌────────────┬────────────┬────────────┐
+│ name       │ age        │ salary     │
+├────────────┼────────────┼────────────┤
+│ Alice      │ 25         │ 50000      │
+│ Bob        │ 30         │ 60000      │
+│ Charlie    │ 35         │ 70000      │
+└────────────┴────────────┴────────────┘
+DataFrame(8 rows, 3 columns)
+┌────────────┬────────────┬──────────────┐
+│            │ age        │ salary       │
+├────────────┼────────────┼──────────────┤
+│ count      │ 3          │ 3            │
+│ mean       │ 30.000000  │ 60000.000000 │
+│ std        │ 5.000000   │ 10000.000000 │
+│ min        │ 25.000000  │ 50000.000000 │
+│ 25%        │ 27.500000  │ 55000.000000 │
+│ 50%        │ 30.000000  │ 60000.000000 │
+│ 75%        │ 32.500000  │ 65000.000000 │
+│ max        │ 35.000000  │ 70000.000000 │
+└────────────┴────────────┴──────────────┘
 ```
 
 ---
