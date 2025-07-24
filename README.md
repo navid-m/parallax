@@ -107,7 +107,7 @@ DataFrame(8 rows, 3 columns)
 
 ---
 
-### 🕒 Time Series & Dates
+### Time Series & Dates
 
 | Function / Feature         | Description                             |
 | -------------------------- | --------------------------------------- |
@@ -143,12 +143,3 @@ DataFrame(8 rows, 3 columns)
 | `parallax.csv`        | CSV reader/writer                       |
 | `parallax.values`     | Generic value abstraction (`DataValue`) |
 | `parallax.datetime`   | Datetime parsing and time logic         |
-
----
-
-### CSV I/O
-
-```d
-auto df = readCsv("data.csv");
-df.toCsv("output.csv");
-```
