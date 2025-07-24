@@ -81,6 +81,13 @@ class DataFrame
         nameToIndex_[col.name] = cast(int) columns_.length - 1;
     }
 
+    /**
+     * Get a column by its name.
+     *
+     * Params:
+     *   colName = The name of the column.
+     * Returns: The column.
+     */
     IColumn opIndex(string colName)
     {
         if (colName !in nameToIndex_)
@@ -90,42 +97,123 @@ class DataFrame
         return columns_[nameToIndex_[colName]];
     }
 
+    /**
+     * Get a data value at a specific row and column name.
+     *
+     * Params:
+     *   row = The row index.
+     *   col = The column name.
+     * Returns: The data value.
+     */
     DataValue opIndex(size_t row, string col) => this[col].getValue(row);
+    /**
+     * Get a data value at a specific row and column index.
+     *
+     * Params:
+     *   row = The row index.
+     *   col = The column index.
+     * Returns: The data value.
+     */
     DataValue opIndex(size_t row, size_t col) => columns_[col].getValue(row);
 
+    /**
+     * Assign a data value at a specific row and column name.
+     *
+     * Params:
+     *   value = The value to assign.
+     *   row = The row index.
+     *   col = The column name.
+     */
     void opIndexAssign(DataValue value, size_t row, string col)
     {
         this[col].setValue(row, value);
     }
 
+    /**
+     * Assign a data value at a specific row and column index.
+     *
+     * Params:
+     *   value = The value to assign.
+     *   row = The row index.
+     *   col = The column index.
+     */
     void opIndexAssign(DataValue value, size_t row, size_t col)
     {
         columns_[col].setValue(row, value);
     }
 
+    /**
+     * Get the number of rows in the DataFrame.
+     *
+     * Returns: The number of rows.
+     */
     @property size_t rows() const => columns_.length > 0 ? columns_[0].length : 0;
+    /**
+     * Get the number of columns in the DataFrame.
+     *
+     * Returns: The number of columns.
+     */
     @property size_t cols() const => columns_.length;
+    /**
+     * Get the column names of the DataFrame.
+     *
+     * Returns: An array of column names.
+     */
     @property string[] columns() const => columnNames_.dup;
+    /**
+     * Get the shape (rows, columns) of the DataFrame.
+     *
+     * Returns: A tuple containing the number of rows and columns.
+     */
     @property Tuple!(size_t, size_t) shape() const => tuple(rows, cols);
 
+    /**
+     * Slice the DataFrame by row range.
+     *
+     * Params:
+     *   rowStart = The starting row index (inclusive).
+     *   rowEnd = The ending row index (exclusive).
+     * Returns: A new DataFrame containing the sliced rows.
+     */
     DataFrame opSlice(size_t rowStart, size_t rowEnd)
     {
         auto newCols = columns_.map!(col => col.slice(rowStart, rowEnd)).array;
         return new DataFrame(newCols);
     }
 
+    /**
+     * Get the first `n` rows of the DataFrame.
+     *
+     * Params:
+     *   n = The number of rows to return (default: 5).
+     * Returns: A new DataFrame containing the head rows.
+     */
     DataFrame head(size_t n = 5)
     {
         size_t end = std.algorithm.min(n, rows);
         return this[0 .. end];
     }
 
+    /**
+     * Get the last `n` rows of the DataFrame.
+     *
+     * Params:
+     *   n = The number of rows to return (default: 5).
+     * Returns: A new DataFrame containing the tail rows.
+     */
     DataFrame tail(size_t n = 5)
     {
         size_t start = rows > n ? rows - n : 0;
         return this[start .. rows];
     }
 
+    /**
+     * Select a subset of columns from the DataFrame.
+     *
+     * Params:
+     *   colNames = An array of column names to select.
+     * Returns: A new DataFrame containing only the selected columns.
+     */
     DataFrame select(string[] colNames...)
     {
         IColumn[] selectedCols;
@@ -136,6 +224,13 @@ class DataFrame
         return new DataFrame(selectedCols);
     }
 
+    /**
+     * Filter the DataFrame based on a boolean mask.
+     *
+     * Params:
+     *   mask = A boolean array indicating which rows to keep.
+     * Returns: A new DataFrame containing only the filtered rows.
+     */
     DataFrame where(bool[] mask)
     {
         enforce(mask.length == rows, "Mask length must match number of rows");
@@ -162,6 +257,13 @@ class DataFrame
         return new DataFrame(filteredCols);
     }
 
+    /**
+     * Group the DataFrame by a specified column.
+     *
+     * Params:
+     *   colName = The name of the column to group by.
+     * Returns: A GroupedDataFrame where keys are unique values from the grouping column and values are DataFrames containing the grouped rows.
+     */
     GroupedDataFrame groupBy(string colName)
     {
         import std.algorithm : uniq, sort;
@@ -203,6 +305,14 @@ class DataFrame
         return result;
     }
 
+    /**
+     * Convert a specified column to a DateTimeColumn.
+     *
+     * Params:
+     *   colName = The name of the column to convert.
+     *   format = Optional format string for parsing dates.
+     * Returns: A new DataFrame with the specified column converted to DateTimeColumn.
+     */
     DataFrame toDatetime(string colName, string format = "")
     {
         enforce(colName in nameToIndex_, "Column not found: " ~ colName);

@@ -58,16 +58,96 @@ class Column(T)
 
 interface IColumn
 {
+    /**
+     * Get the name of the column.
+     *
+     * Returns: Name of the column.
+     */
     @property string name() const;
+
+    /**
+     * Get the length of the column.
+     *
+     * Returns: Length of the column.
+     */
     @property size_t length() const;
+
+    /**
+     * Get a data value at a specific index.
+     *
+     * Params:
+     *   idx = The index.
+     * Returns: The data value.
+     */
     DataValue getValue(size_t idx);
+
+    /**
+     * Set a data value at a specific index.
+     *
+     * Params:
+     *   idx = The index.
+     *   value = The data value to set.
+     */
     void setValue(size_t idx, DataValue value);
+
+    /**
+     * Convert a value at a specific index to its string representation.
+     *
+     * Params:
+     *   idx = The index.
+     * Returns: The string representation of the value.
+     */
     string toString(size_t idx) const;
+
+    /**
+     * Slice the column.
+     *
+     * Params:
+     *   start = Start index.
+     *   end = End index.
+     * Returns: A new column containing the sliced data.
+     */
     IColumn slice(size_t start, size_t end);
+
+    /**
+     * Create a copy of the column.
+     *
+     * Returns: A new column that is a copy of the current one.
+     */
     IColumn copy();
+
+    /**
+     * Filter the column based on a boolean mask.
+     *
+     * Params:
+     *   mask = A boolean array indicating which rows to keep.
+     * Returns: A new column containing only the filtered rows.
+     */
     IColumn filter(bool[] mask);
+
+    /**
+     * Create an empty column with the same type and name.
+     *
+     * Returns: An empty column.
+     */
     IColumn createEmpty();
+
+    /**
+     * Reorder the column based on a new set of indices.
+     *
+     * Params:
+     *   indices = An array of new indices.
+     * Returns: A new column with reordered data.
+     */
     IColumn reorder(size_t[] indices);
+
+    /**
+     * Create a copy of the column with a new name.
+     *
+     * Params:
+     *   newName = The new name for the column.
+     * Returns: A new column with the specified name and copied data.
+     */
     IColumn copyWithName(string newName);
 }
 
