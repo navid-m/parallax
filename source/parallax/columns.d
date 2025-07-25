@@ -269,10 +269,7 @@ class TCol(T) : IColumn
      *
      * Returns: The column data
      */
-    T[] getData()
-    {
-        return col.data;
-    }
+    T[] getData() => col.data;
 
     /** 
      * Create an empty column.
