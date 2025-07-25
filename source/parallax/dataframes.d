@@ -1194,9 +1194,6 @@ class DataFrame
                     }
                 }
 
-                if (!isNumeric)
-                    continue;
-
                 auto stats = calculateStats(numericData);
                 auto statCol = new TCol!string(col.name, stats);
                 resultCols ~= cast(IColumn) statCol;
