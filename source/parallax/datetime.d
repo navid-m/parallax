@@ -36,50 +36,15 @@ struct ParallaxDateTime
         timestamp = SysTime(dt, msecs.msecs, UTC());
     }
 
-    @property int year() const
-    {
-        return timestamp.year;
-    }
-
-    @property int month() const
-    {
-        return cast(int) timestamp.month;
-    }
-
-    @property int day() const
-    {
-        return timestamp.day;
-    }
-
-    @property int hour() const
-    {
-        return timestamp.hour;
-    }
-
-    @property int minute() const
-    {
-        return timestamp.minute;
-    }
-
-    @property int second() const
-    {
-        return timestamp.second;
-    }
-
-    @property int millisecond() const
-    {
-        return cast(int) timestamp.fracSecs.total!"msecs";
-    }
-
-    @property int dayOfWeek() const
-    {
-        return cast(int) timestamp.dayOfWeek;
-    }
-
-    @property int dayOfYear() const
-    {
-        return timestamp.dayOfYear;
-    }
+    @property int year() const => timestamp.year;
+    @property int month() const => cast(int) timestamp.month;
+    @property int day() const => timestamp.day;
+    @property int hour() const => timestamp.hour;
+    @property int minute() const => timestamp.minute;
+    @property int second() const => timestamp.second;
+    @property int millisecond() const => cast(int) timestamp.fracSecs.total!"msecs";
+    @property int dayOfWeek() const => cast(int) timestamp.dayOfWeek;
+    @property int dayOfYear() const => timestamp.dayOfYear;
 
     @property string dayName() const
     {
@@ -154,20 +119,9 @@ struct ParallaxDateTime
         return 0;
     }
 
-    bool opEquals(const ParallaxDateTime other) const
-    {
-        return timestamp == other.timestamp;
-    }
-
-    string toHash() const
-    {
-        return this.toString();
-    }
-
-    string toString() const
-    {
-        return timestamp.toISOExtString();
-    }
+    bool opEquals(const ParallaxDateTime other) const => timestamp == other.timestamp;
+    string toHash() const => this.toString();
+    string toString() const => timestamp.toISOExtString();
 
     string strftime(string fmt) const
     {
