@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Module parallax.datetime</title>
+		<link rel="stylesheet" type="text/css" href="../styles/ddox.css"/>
+		<link rel="stylesheet" href="../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../scripts/jquery.js">/**/</script><script type="text/javascript" src="../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">
+						<a href="../parallax.html">parallax</a>
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../parallax/columns.html">columns</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../parallax/dataframes.html">dataframes</a>
+					</div>
+				</li>
+				<li>
+					<div class="module selected">
+						<a href="../parallax/datetime.html">datetime</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../parallax/tests.html">tests</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../parallax/values.html">values</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Module parallax.datetime</h1><p></p>
+			<section><section><h2>Description</h2>
+<p>Contains operations for datetime handling.
+</p>
+</section>
+</section>
+			<section>
+				<h2>Functions</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="businessDayRange" class="public" href="../parallax/datetime/businessDayRange.html">businessDayRange</a><span class="tableEntryAnnotation">(start, end)</span>
+							</code>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="dateRange" class="public" href="../parallax/datetime/dateRange.html">dateRange</a><span class="tableEntryAnnotation">(start, end, freq)</span>
+							</code>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="dateRange" class="public" href="../parallax/datetime/dateRange.html">dateRange</a><span class="tableEntryAnnotation">(start, end, freq)</span>
+							</code>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="dateRange" class="public" href="../parallax/datetime/dateRange.html">dateRange</a><span class="tableEntryAnnotation">(start, periods, freq)</span>
+							</code>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="isBusinessDay" class="public" href="../parallax/datetime/isBusinessDay.html">isBusinessDay</a><span class="tableEntryAnnotation">(dt)</span>
+							</code>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="now" class="public" href="../parallax/datetime/now.html">now</a><span class="tableEntryAnnotation">()</span>
+							</code>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="parseDateTime" class="public" href="../parallax/datetime/parseDateTime.html">parseDateTime</a><span class="tableEntryAnnotation">(dateStr, format)</span>
+							</code>
+						</td>
+						<td>Parses a date and time string into a ParallaxDateTime object.
+ It attempts to auto-detect the format if no format string is provided.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="splitByFrequency" class="public" href="../parallax/datetime/splitByFrequency.html">splitByFrequency</a><span class="tableEntryAnnotation">(start, end, freq)</span>
+							</code>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="today" class="public" href="../parallax/datetime/today.html">today</a><span class="tableEntryAnnotation">()</span>
+							</code>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="toTimezone" class="public" href="../parallax/datetime/toTimezone.html">toTimezone</a><span class="tableEntryAnnotation">(dt, tz)</span>
+							</code>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="autoParseDateTime" class="private" href="../parallax/datetime/autoParseDateTime.html">autoParseDateTime</a><span class="tableEntryAnnotation">(dateStr)</span>
+							</code>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="parseWithFormat" class="private" href="../parallax/datetime/parseWithFormat.html">parseWithFormat</a><span class="tableEntryAnnotation">(dateStr, format)</span>
+							</code>
+						</td>
+						<td>Parses a date and time string using a specified format.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section>
+				<h2>Classes</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="DateTimeColumn" class="public" href="../parallax/datetime/DateTimeColumn.html">DateTimeColumn</a>
+							</code>
+						</td>
+						<td>A time series column.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="TimeDelta" class="public" href="../parallax/datetime/TimeDelta.html">TimeDelta</a>
+							</code>
+						</td>
+						<td></td>
+					</tr>
+				</table>
+			</section>
+			<section>
+				<h2>Structs</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="ParallaxDateTime" class="public" href="../parallax/datetime/ParallaxDateTime.html">ParallaxDateTime</a>
+							</code>
+						</td>
+						<td>A date and time with millisecond precision.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="Period" class="public" href="../parallax/datetime/Period.html">Period</a>
+							</code>
+						</td>
+						<td></td>
+					</tr>
+				</table>
+			</section>
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							<p>Navid M
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p>GPL3
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

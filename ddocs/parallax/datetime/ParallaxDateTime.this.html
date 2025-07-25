@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>ParallaxDateTime.this - multiple declarations</title>
+		<link rel="stylesheet" type="text/css" href="../../styles/ddox.css"/>
+		<link rel="stylesheet" href="../../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../../scripts/jquery.js">/**/</script><script type="text/javascript" src="../../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">
+						<a href="../../parallax.html">parallax</a>
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../parallax/columns.html">columns</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../parallax/dataframes.html">dataframes</a>
+					</div>
+				</li>
+				<li>
+					<div class="module selected">
+						<a href="../../parallax/datetime.html">datetime</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../parallax/tests.html">tests</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../parallax/values.html">values</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>ParallaxDateTime.this - multiple declarations</h1>
+			<nav class="page-nav">
+				<ul>
+					<li>
+						<a href="#0">
+							Function <code>ParallaxDateTime.this</code>
+						</a>
+					</li>
+					<li>
+						<a href="#1">
+							Function <code>ParallaxDateTime.this</code>
+						</a>
+					</li>
+					<li>
+						<a href="#2">
+							Function <code>ParallaxDateTime.this</code>
+						</a>
+					</li>
+				</ul>
+			</nav><h2 id="0">Function ParallaxDateTime.this</h2><p>Construct a ParallaxDateTime from a SysTime object.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="pln">this</span>
+			<span class="pun">(</span>
+			<br/>
+			&nbsp;&nbsp;<span class="pln">std<wbr/></span><span class="pun">.</span><span class="pln">datetime<wbr/></span><span class="pun">.</span><span class="pln">systime<wbr/></span><span class="pun">.</span><span class="typ">SysTime</span> <span class="pln">dt</span>
+			<br/>
+			<span class="pun">)</span><span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section></section>
+
+			<section><h3>Parameters</h3>
+<table><col class="caption"><tr><th>Name</th><th>Description</th></tr>
+<tr><td id="dt">dt</td><td> The <code class="lang-d"><span class="typ">SysTime</span></code> object.</td></tr>
+</table>
+</section>
+<h2 id="1">Function ParallaxDateTime.this</h2><p>Construct a ParallaxDateTime from a DateTime object and an optional TimeZone.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="pln">this</span>
+			<span class="pun">(</span>
+			<br/>
+			&nbsp;&nbsp;<span class="pln">std<wbr/></span><span class="pun">.</span><span class="pln">datetime<wbr/></span><span class="pun">.</span><span class="pln">date<wbr/></span><span class="pun">.</span><span class="typ">DateTime</span> <span class="pln">dt</span><span class="pun">,</span>
+			<br/>
+			&nbsp;&nbsp;<span class="kwd">immutable</span><span class="pun">(</span><span class="pln">std<wbr/></span><span class="pun">.</span><span class="pln">datetime<wbr/></span><span class="pun">.</span><span class="pln">timezone<wbr/></span><span class="pun">.</span><span class="typ">TimeZone</span><span class="pun">)</span> <span class="pln">tz</span> <span class="pun">=</span> <span class="pln">opCall</span><span class="pun">()</span>
+			<br/>
+			<span class="pun">)</span><span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section></section>
+
+			<section><h3>Parameters</h3>
+<table><col class="caption"><tr><th>Name</th><th>Description</th></tr>
+<tr><td id="dt">dt</td><td> The <code class="lang-d"><span class="typ">DateTime</span></code> object.</td></tr>
+<tr><td id="tz">tz</td><td> The <code class="lang-d"><span class="typ">TimeZone</span></code> (defaults to UTC).</td></tr>
+</table>
+</section>
+<h2 id="2">Function ParallaxDateTime.this</h2><p>Construct a date time object from individual date and time components.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="pln">this</span>
+			<span class="pun">(</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">int</span> <span class="pln">year</span><span class="pun">,</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">int</span> <span class="pln">month</span><span class="pun">,</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">int</span> <span class="pln">day</span><span class="pun">,</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">int</span> <span class="pln">hour</span> <span class="pun">=</span> <span class="lit">0</span><span class="pun">,</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">int</span> <span class="pln">minute</span> <span class="pun">=</span> <span class="lit">0</span><span class="pun">,</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">int</span> <span class="pln">second</span> <span class="pun">=</span> <span class="lit">0</span><span class="pun">,</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">int</span> <span class="pln">msecs</span> <span class="pun">=</span> <span class="lit">0</span>
+			<br/>
+			<span class="pun">)</span><span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section></section>
+
+			<section><h3>Parameters</h3>
+<table><col class="caption"><tr><th>Name</th><th>Description</th></tr>
+<tr><td id="year">year</td><td> The year.</td></tr>
+<tr><td id="month">month</td><td> The month (1-12).</td></tr>
+<tr><td id="day">day</td><td> The day of the month (1-31).</td></tr>
+<tr><td id="hour">hour</td><td> The hour (0-23, defaults to 0).</td></tr>
+<tr><td id="minute">minute</td><td> The minute (0-59, defaults to 0).</td></tr>
+<tr><td id="second">second</td><td> The second (0-59, defaults to 0).</td></tr>
+<tr><td id="msecs">msecs</td><td> The milliseconds (0-999, defaults to 0).</td></tr>
+</table>
+</section>
+
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							<p>Navid M
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p>GPL3
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

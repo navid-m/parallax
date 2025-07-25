@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Class DateTimeColumn</title>
+		<link rel="stylesheet" type="text/css" href="../../styles/ddox.css"/>
+		<link rel="stylesheet" href="../../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../../scripts/jquery.js">/**/</script><script type="text/javascript" src="../../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">
+						<a href="../../parallax.html">parallax</a>
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../parallax/columns.html">columns</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../parallax/dataframes.html">dataframes</a>
+					</div>
+				</li>
+				<li>
+					<div class="module selected">
+						<a href="../../parallax/datetime.html">datetime</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../parallax/tests.html">tests</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../parallax/values.html">values</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Class DateTimeColumn</h1><p>A time series column.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="kwd">class</span> <span class="typ">DateTimeColumn</span>
+			<br>&nbsp;&nbsp;: <a href="../../parallax/columns/IColumn.html"><span class="typ">IColumn</span></a>
+			<span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			
+			<section><h2>Constructors</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/datetime/DateTimeColumn.this.html" class="public">
+								<code>this</code>
+							</a>
+							<span class="tableEntryAnnotation">(name, data)</span>
+						</td>
+						<td></td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Fields</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Type</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/datetime/DateTimeColumn.data_.html" class="private"><code>data_</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><a href="../../parallax/datetime/ParallaxDateTime.html"><span class="typ">ParallaxDateTime</span></a><span class="pun">[]</span></code></td><td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/datetime/DateTimeColumn.name_.html" class="private"><code>name_</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">string</span></code></td><td></td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Properties</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Type</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/datetime/DateTimeColumn.length.html" class="public property"><code>length</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">ulong</span></code></td><td>Get the length of the column.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/datetime/DateTimeColumn.name.html" class="public property"><code>name</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">string</span></code></td><td>Get the name of the column.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Methods</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/datetime/DateTimeColumn.append.html" class="public">
+								<code>append</code>
+							</a>
+							<span class="tableEntryAnnotation">(value)</span>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/datetime/DateTimeColumn.copy.html" class="public">
+								<code>copy</code>
+							</a>
+							<span class="tableEntryAnnotation">()</span>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/datetime/DateTimeColumn.copyWithName.html" class="public">
+								<code>copyWithName</code>
+							</a>
+							<span class="tableEntryAnnotation">(newName)</span>
+						</td>
+						<td>Create a copy of the column with a new name.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/datetime/DateTimeColumn.createEmpty.html" class="public">
+								<code>createEmpty</code>
+							</a>
+							<span class="tableEntryAnnotation">()</span>
+						</td>
+						<td>Create an empty column with the same type and name.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/datetime/DateTimeColumn.dt_ceil.html" class="public">
+								<code>dt_ceil</code>
+							</a>
+							<span class="tableEntryAnnotation">(freq)</span>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/datetime/DateTimeColumn.dt_day.html" class="public">
+								<code>dt_day</code>
+							</a>
+							<span class="tableEntryAnnotation">()</span>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/datetime/DateTimeColumn.dt_dayofweek.html" class="public">
+								<code>dt_dayofweek</code>
+							</a>
+							<span class="tableEntryAnnotation">()</span>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/datetime/DateTimeColumn.dt_floor.html" class="public">
+								<code>dt_floor</code>
+							</a>
+							<span class="tableEntryAnnotation">(freq)</span>
+						</td>
+						<td>Returns actual DateTimeColumn since it preserves DateTime type.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/datetime/DateTimeColumn.dt_month.html" class="public">
+								<code>dt_month</code>
+							</a>
+							<span class="tableEntryAnnotation">()</span>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/datetime/DateTimeColumn.dt_strftime.html" class="public">
+								<code>dt_strftime</code>
+							</a>
+							<span class="tableEntryAnnotation">(format)</span>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/datetime/DateTimeColumn.dt_year.html" class="public">
+								<code>dt_year</code>
+							</a>
+							<span class="tableEntryAnnotation">()</span>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/datetime/DateTimeColumn.filter.html" class="public">
+								<code>filter</code>
+							</a>
+							<span class="tableEntryAnnotation">(mask)</span>
+						</td>
+						<td>Filter the column based on a boolean mask.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/datetime/DateTimeColumn.getData.html" class="public">
+								<code>getData</code>
+							</a>
+							<span class="tableEntryAnnotation">()</span>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/datetime/DateTimeColumn.getValue.html" class="public">
+								<code>getValue</code>
+							</a>
+							<span class="tableEntryAnnotation">(index)</span>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/datetime/DateTimeColumn.reorder.html" class="public">
+								<code>reorder</code>
+							</a>
+							<span class="tableEntryAnnotation">(indices)</span>
+						</td>
+						<td>Reorder the column based on a new set of indices.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/datetime/DateTimeColumn.setValue.html" class="public">
+								<code>setValue</code>
+							</a>
+							<span class="tableEntryAnnotation">(index, value)</span>
+						</td>
+						<td>Set a data value at a specific index.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/datetime/DateTimeColumn.slice.html" class="public">
+								<code>slice</code>
+							</a>
+							<span class="tableEntryAnnotation">(start, end)</span>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/datetime/DateTimeColumn.toString.html" class="public">
+								<code>toString</code>
+							</a>
+							<span class="tableEntryAnnotation">(index)</span>
+						</td>
+						<td>Convert a value at a specific index to its string representation.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/columns/IColumn.copy.html" class="public inherited">
+								<code>copy</code>
+							</a>
+							<span class="tableEntryAnnotation">()</span>
+						</td>
+						<td>Create a copy of the column.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/columns/IColumn.getValue.html" class="public inherited">
+								<code>getValue</code>
+							</a>
+							<span class="tableEntryAnnotation">(idx)</span>
+						</td>
+						<td>Get a data value at a specific index.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/columns/IColumn.slice.html" class="public inherited">
+								<code>slice</code>
+							</a>
+							<span class="tableEntryAnnotation">(start, end)</span>
+						</td>
+						<td>Slice the column.
+</td>
+					</tr>
+				</table>
+			</section>
+			
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							<p>Navid M
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p>GPL3
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

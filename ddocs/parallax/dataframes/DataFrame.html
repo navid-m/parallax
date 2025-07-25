@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Class DataFrame</title>
+		<link rel="stylesheet" type="text/css" href="../../styles/ddox.css"/>
+		<link rel="stylesheet" href="../../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../../scripts/jquery.js">/**/</script><script type="text/javascript" src="../../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">
+						<a href="../../parallax.html">parallax</a>
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../parallax/columns.html">columns</a>
+					</div>
+				</li>
+				<li>
+					<div class="module selected">
+						<a href="../../parallax/dataframes.html">dataframes</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../parallax/datetime.html">datetime</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../parallax/tests.html">tests</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../parallax/values.html">values</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Class DataFrame</h1><p>A container for regular numerical and time-series related data.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="kwd">class</span> <span class="typ">DataFrame</span>
+			<span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			
+			<section><h2>Constructors</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.this.html" class="public">
+								<code>this</code>
+							</a>
+							<span class="tableEntryAnnotation">()</span>
+						</td>
+						<td>Construct an empty dataframe.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.this.html" class="public">
+								<code>this</code>
+							</a>
+							<span class="tableEntryAnnotation">(cols)</span>
+						</td>
+						<td>Construct a dataframe with the given columns.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Fields</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Type</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.columnNames_.html" class="private"><code>columnNames_</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">string</span><span class="pun">[]</span></code></td><td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.columns_.html" class="private"><code>columns_</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><a href="../../parallax/columns/IColumn.html"><span class="typ">IColumn</span></a><span class="pun">[]</span></code></td><td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.nameToIndex_.html" class="private"><code>nameToIndex_</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">ulong</span><span class="pun">[</span><span class="typ">string</span><span class="pun">]</span></code></td><td></td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Properties</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Type</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.cols.html" class="public property"><code>cols</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">ulong</span></code></td><td>Get the number of columns in the DataFrame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.columns.html" class="public property"><code>columns</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">string</span><span class="pun">[]</span></code></td><td>Get the column names of the DataFrame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.rows.html" class="public property"><code>rows</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">ulong</span></code></td><td>Get the number of rows in the DataFrame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.shape.html" class="public property"><code>shape</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="pln">std<wbr/></span><span class="pun">.</span><span class="pln">typecons<wbr/></span><span class="pun">.</span><span class="typ">Tuple</span>!(ulong,ulong)</code></td><td>Get the shape (rows, columns) of the DataFrame.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Methods</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.apply.html" class="public">
+								<code>apply</code>
+							</a>
+							<span class="tableEntryAnnotation">(func, axis)</span>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.betweenDates.html" class="public">
+								<code>betweenDates</code>
+							</a>
+							<span class="tableEntryAnnotation">(colName, start, end)</span>
+						</td>
+						<td>Filter data by date range
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.betweenDates.html" class="public">
+								<code>betweenDates</code>
+							</a>
+							<span class="tableEntryAnnotation">(colName, startStr, endStr)</span>
+						</td>
+						<td>Filter data by date range using string dates
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.bfill.html" class="public">
+								<code>bfill</code>
+							</a>
+							<span class="tableEntryAnnotation">(dateCol, fillCols)</span>
+						</td>
+						<td>Backward fill missing values based on time order
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.copy.html" class="public">
+								<code>copy</code>
+							</a>
+							<span class="tableEntryAnnotation">()</span>
+						</td>
+						<td>Creates a shallow copy of the dataframe.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.create.html" class="public">
+								<code>create</code>
+							</a>
+							<span class="tableEntryAnnotation">(names, arrays)</span>
+						</td>
+						<td>Get back a dataframe given some configuration.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.createLags.html" class="public">
+								<code>createLags</code>
+							</a>
+							<span class="tableEntryAnnotation">(dateCol, valueCol, lags)</span>
+						</td>
+						<td>Create lag features for time series analysis
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.crosstab.html" class="public">
+								<code>crosstab</code>
+							</a>
+							<span class="tableEntryAnnotation">(index_col, columns_col, values_col, aggfunc)</span>
+						</td>
+						<td>Cross-tabulation using melt as a helper
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.describe.html" class="public">
+								<code>describe</code>
+							</a>
+							<span class="tableEntryAnnotation">()</span>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.drop.html" class="public">
+								<code>drop</code>
+							</a>
+							<span class="tableEntryAnnotation">(colNames)</span>
+						</td>
+						<td>Drop specified columns from the dataframe.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.dropna.html" class="public">
+								<code>dropna</code>
+							</a>
+							<span class="tableEntryAnnotation">()</span>
+						</td>
+						<td>Drop rows from the dataframe that contain any missing or null values.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.dt.html" class="public">
+								<code>dt</code>
+							</a>
+							<span class="tableEntryAnnotation">(colName)</span>
+						</td>
+						<td>Accesses a DateTimeColumn from the DataFrame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.ffill.html" class="public">
+								<code>ffill</code>
+							</a>
+							<span class="tableEntryAnnotation">(dateCol, fillCols)</span>
+						</td>
+						<td>Forward fill missing values based on time order
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.fillna.html" class="public">
+								<code>fillna</code>
+							</a>
+							<span class="tableEntryAnnotation">(fillValue, columns)</span>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.forMonth.html" class="public">
+								<code>forMonth</code>
+							</a>
+							<span class="tableEntryAnnotation">(colName, year, month)</span>
+						</td>
+						<td>Get data for a specific month
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.forYear.html" class="public">
+								<code>forYear</code>
+							</a>
+							<span class="tableEntryAnnotation">(colName, year)</span>
+						</td>
+						<td>Get data for a specific year
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.groupBy.html" class="public">
+								<code>groupBy</code>
+							</a>
+							<span class="tableEntryAnnotation">(colName)</span>
+						</td>
+						<td>Group the DataFrame by a specified column.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.head.html" class="public">
+								<code>head</code>
+							</a>
+							<span class="tableEntryAnnotation">(n)</span>
+						</td>
+						<td>Get the first <code class="lang-d"><a href="../../parallax/dataframes/DataFrame.head.html#n"><span class="pln">n</span></a></code> rows of the DataFrame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.max.html" class="public">
+								<code>max</code>
+							</a>
+							<span class="tableEntryAnnotation">()</span>
+						</td>
+						<td>Calculates the maximum value of numerical columns in the dataframe.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.mean.html" class="public">
+								<code>mean</code>
+							</a>
+							<span class="tableEntryAnnotation">()</span>
+						</td>
+						<td>Calculates the mean of numerical columns in the dataframe.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.melt.html" class="public">
+								<code>melt</code>
+							</a>
+							<span class="tableEntryAnnotation">(id_vars, value_vars, var_name, value_name)</span>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.melt.html" class="public">
+								<code>melt</code>
+							</a>
+							<span class="tableEntryAnnotation">(id_var, value_vars, var_name, value_name)</span>
+						</td>
+						<td>Convenience overload for melting with a single id variable
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.meltAllExcept.html" class="public">
+								<code>meltAllExcept</code>
+							</a>
+							<span class="tableEntryAnnotation">(id_var, var_name, value_name)</span>
+						</td>
+						<td>Convenience overload for melting all columns except one id variable
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.meltMultiple.html" class="public">
+								<code>meltMultiple</code>
+							</a>
+							<span class="tableEntryAnnotation">(id_vars, value_var_groups, var_names, value_names)</span>
+						</td>
+						<td>Wide to long transformation with multiple value columns
+ More advanced melt that can handle multiple value column sets
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.merge.html" class="public">
+								<code>merge</code>
+							</a>
+							<span class="tableEntryAnnotation">(other, on, how)</span>
+						</td>
+						<td>Merges this dataframe with another dataframe based on a common column.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.min.html" class="public">
+								<code>min</code>
+							</a>
+							<span class="tableEntryAnnotation">()</span>
+						</td>
+						<td>Calculates the minimum value of numerical columns in the dataframe.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.opBinary.html" class="public">
+								<code>opBinary</code>
+							</a>
+							<span class="tableEntryAnnotation">(other)</span>
+						</td>
+						<td>Performs a binary operation (e.g., addition, subtraction) between two dataframes.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.opIndex.html" class="public">
+								<code>opIndex</code>
+							</a>
+							<span class="tableEntryAnnotation">(colName)</span>
+						</td>
+						<td>Get a column by its name.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.opIndex.html" class="public">
+								<code>opIndex</code>
+							</a>
+							<span class="tableEntryAnnotation">(row, col)</span>
+						</td>
+						<td>Get a data value at a specific row and column name.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.opIndex.html" class="public">
+								<code>opIndex</code>
+							</a>
+							<span class="tableEntryAnnotation">(row, col)</span>
+						</td>
+						<td>Get a data value at a specific row and column index.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.opIndexAssign.html" class="public">
+								<code>opIndexAssign</code>
+							</a>
+							<span class="tableEntryAnnotation">(value, row, col)</span>
+						</td>
+						<td>Assign a data value at a specific row and column name.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.opIndexAssign.html" class="public">
+								<code>opIndexAssign</code>
+							</a>
+							<span class="tableEntryAnnotation">(value, row, col)</span>
+						</td>
+						<td>Assign a data value at a specific row and column index.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.opSlice.html" class="public">
+								<code>opSlice</code>
+							</a>
+							<span class="tableEntryAnnotation">(rowStart, rowEnd)</span>
+						</td>
+						<td>Slice the DataFrame by row range.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.pctChange.html" class="public">
+								<code>pctChange</code>
+							</a>
+							<span class="tableEntryAnnotation">(dateCol, valueCol, periods)</span>
+						</td>
+						<td>Calculate period-over-period changes
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.pivotTable.html" class="public">
+								<code>pivotTable</code>
+							</a>
+							<span class="tableEntryAnnotation">(values, index, columns, aggfunc, fillValue)</span>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.readCsv.html" class="public">
+								<code>readCsv</code>
+							</a>
+							<span class="tableEntryAnnotation">(filename, hasHeader, delimiter)</span>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.rename.html" class="public">
+								<code>rename</code>
+							</a>
+							<span class="tableEntryAnnotation">(mapping)</span>
+						</td>
+						<td>Rename columns in the dataframe.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.resample.html" class="public">
+								<code>resample</code>
+							</a>
+							<span class="tableEntryAnnotation">(colName, freq, aggFunc)</span>
+						</td>
+						<td>Resample datetime data by frequency
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.rolling.html" class="public">
+								<code>rolling</code>
+							</a>
+							<span class="tableEntryAnnotation">(dateCol, valueCol, window, aggFunc)</span>
+						</td>
+						<td>Calculate rolling window statistics over time
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.rollup.html" class="public">
+								<code>rollup</code>
+							</a>
+							<span class="tableEntryAnnotation">(dateCol, valueCol, period, aggFunc)</span>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.select.html" class="public">
+								<code>select</code>
+							</a>
+							<span class="tableEntryAnnotation">(colNames)</span>
+						</td>
+						<td>Select a subset of columns from the DataFrame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.setDatetimeIndex.html" class="public">
+								<code>setDatetimeIndex</code>
+							</a>
+							<span class="tableEntryAnnotation">(colName)</span>
+						</td>
+						<td>Set a datetime index (for time series operations)
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.shift.html" class="public">
+								<code>shift</code>
+							</a>
+							<span class="tableEntryAnnotation">(dateCol, valueCol, periods)</span>
+						</td>
+						<td>Shift data by a number of periods
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.show.html" class="public">
+								<code>show</code>
+							</a>
+							<span class="tableEntryAnnotation">(maxRows, showIndex)</span>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.showPivot.html" class="public">
+								<code>showPivot</code>
+							</a>
+							<span class="tableEntryAnnotation">(maxRows, maxCols)</span>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.sortValues.html" class="public">
+								<code>sortValues</code>
+							</a>
+							<span class="tableEntryAnnotation">(colName, ascending)</span>
+						</td>
+						<td>Sorts the dataframe by the values in a specified column.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.stack.html" class="public">
+								<code>stack</code>
+							</a>
+							<span class="tableEntryAnnotation">(columns_to_stack, level_name)</span>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.sum.html" class="public">
+								<code>sum</code>
+							</a>
+							<span class="tableEntryAnnotation">()</span>
+						</td>
+						<td>Calculates the sum of numerical columns in the dataframe.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.tail.html" class="public">
+								<code>tail</code>
+							</a>
+							<span class="tableEntryAnnotation">(n)</span>
+						</td>
+						<td>Get the last <code class="lang-d"><a href="../../parallax/dataframes/DataFrame.tail.html#n"><span class="pln">n</span></a></code> rows of the DataFrame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.toCsv.html" class="public">
+								<code>toCsv</code>
+							</a>
+							<span class="tableEntryAnnotation">(filename, writeHeader, delimiter)</span>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.toDatetime.html" class="public">
+								<code>toDatetime</code>
+							</a>
+							<span class="tableEntryAnnotation">(colName, format)</span>
+						</td>
+						<td>Convert a specified column to a DateTimeColumn.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.unmelt.html" class="public">
+								<code>unmelt</code>
+							</a>
+							<span class="tableEntryAnnotation">(index_col, var_col, value_col)</span>
+						</td>
+						<td>Reverse operation: pivot (unpivot the melted data back to wide format)
+ This complements the melt operation
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.unstack.html" class="public">
+								<code>unstack</code>
+							</a>
+							<span class="tableEntryAnnotation">(level_col, value_col)</span>
+						</td>
+						<td>Unstack operation - reverse of stack
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.valueCounts.html" class="public">
+								<code>valueCounts</code>
+							</a>
+							<span class="tableEntryAnnotation">(colName, ascending, dropna)</span>
+						</td>
+						<td>Calculates the counts of unique values in a specified column.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.where.html" class="public">
+								<code>where</code>
+							</a>
+							<span class="tableEntryAnnotation">(mask)</span>
+						</td>
+						<td>Filter the DataFrame based on a boolean mask.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.addColumn.html" class="private">
+								<code>addColumn</code>
+							</a>
+							<span class="tableEntryAnnotation">(col)</span>
+						</td>
+						<td>Add a column to this dataframe.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.calculateStats.html" class="private">
+								<code>calculateStats</code>
+							</a>
+							<span class="tableEntryAnnotation">(data)</span>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../parallax/dataframes/DataFrame.percentile.html" class="private">
+								<code>percentile</code>
+							</a>
+							<span class="tableEntryAnnotation">(sortedData, p)</span>
+						</td>
+						<td></td>
+					</tr>
+				</table>
+			</section>
+			
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							<p>Navid M
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p>GPL3
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>
