@@ -236,3 +236,44 @@ package unittest
     writeln("\nQuality metrics (melted):");
     qualityMelted.show();
 }
+
+package unittest
+{
+    import std.file;
+    import std.format;
+
+    auto names = ["Alice Johnson", "Bob Smith", "Charlie Brown", "Diana Prince"];
+    auto ages = [25, 30, 35, 28];
+    auto salaries = [50_000.0, 65_000.0, 75_000.0, 58_000.0];
+    auto departments = ["Engineering", "Marketing", "Finance", "HR"];
+    auto originalDf = createDataFrame(
+        ["name", "age", "salary", "department"],
+        names, ages, salaries, departments
+    );
+
+    writeln("Original DataFrame:");
+    originalDf.show();
+    string testFile = "test_basic.csv";
+    scope (exit)
+        if (exists(testFile))
+            remove(testFile);
+
+    auto sw = StopWatch(AutoStart.yes);
+    originalDf.toCsv(testFile);
+    writeln("CSV write time: ", sw.peek.total!"msecs", " ms");
+
+    assert(exists(testFile), "CSV file was not created");
+    writeln("CSV file size: ", getSize(testFile), " bytes");
+
+    sw.reset();
+    sw.start();
+    auto loadedDf = DataFrame.readCsv(testFile);
+    writeln("CSV read time: ", sw.peek.total!"msecs", " ms");
+
+    writeln("\nLoaded DataFrame:");
+    loadedDf.show();
+
+    auto originalNames = originalDf.columns();
+    auto loadedNames = loadedDf.columns();
+    loadedDf.show();
+}

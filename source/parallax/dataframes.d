@@ -1621,13 +1621,11 @@ class DataFrame
     {
         auto content = readText(filename);
         auto lines = content.splitLines();
-
         if (lines.length == 0)
             return new DataFrame();
 
         string[] headers;
         size_t dataStart = 0;
-
         if (hasHeader)
         {
             headers = lines[0].split(delimiter);
@@ -1636,19 +1634,21 @@ class DataFrame
         else
         {
             auto firstLine = lines[0].split(delimiter);
+            headers.reserve(firstLine.length);
             foreach (i; 0 .. firstLine.length)
-            {
                 headers ~= "col" ~ to!string(i);
-            }
         }
 
         auto dataLines = lines[dataStart .. $];
         auto numThreads = totalCPUs;
         auto chunkSize = std.algorithm.max(1, dataLines.length / numThreads);
         auto columns = new TCol!string[](headers.length);
-
+        auto estimatedRowsPerCol = dataLines.length;
         foreach (i, header; headers)
+        {
             columns[i] = new TCol!string(header);
+            columns[i].reserve(estimatedRowsPerCol);
+        }
 
         auto chunks = dataLines.chunks(chunkSize).array;
         auto results = new string[][][](chunks.length);
@@ -1666,34 +1666,27 @@ class DataFrame
             foreach (line; chunk)
             {
                 auto fields = line.split(delimiter);
-                foreach (i, field; fields)
-                {
-                    if (i < headers.length)
-                    {
-                        results[chunkIdx][i] ~= field.strip;
-                    }
-                }
+                auto fieldCount = std.algorithm.min(fields.length, headers.length);
+                foreach (i; 0 .. fieldCount)
+                    results[chunkIdx][i] ~= fields[i].strip;
             }
         }
 
         foreach (colIdx; 0 .. headers.length)
         {
-            foreach (result; results)
+            foreach (chunkResult; results)
             {
-                if (colIdx < result.length)
+                if (colIdx < chunkResult.length && chunkResult[colIdx].length > 0)
                 {
-                    foreach (value; result[colIdx])
-                    {
-                        columns[colIdx].append(value);
-                    }
+                    columns[colIdx].appendRange(chunkResult[colIdx]);
                 }
             }
         }
 
-        IColumn[] finalCols;
-        foreach (col; columns)
+        auto finalCols = new IColumn[](columns.length);
+        foreach (i, col; columns)
         {
-            finalCols ~= cast(IColumn) col;
+            finalCols[i] = cast(IColumn) col;
         }
 
         return new DataFrame(finalCols);

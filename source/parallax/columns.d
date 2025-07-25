@@ -197,6 +197,28 @@ class TCol(T) : IColumn
         return DataValue(col[idx]);
     }
 
+    /**
+     * Reserve capacity for the column data.
+     *
+     * Params:
+     *   capacity = The number of elements to reserve space for
+     */
+    void reserve(size_t capacity)
+    {
+        col.data.reserve(capacity);
+    }
+
+    /**
+     * Append multiple values to the column at once.
+     *
+     * Params:
+     *   values = The array of values to append
+     */
+    void appendRange(T[] values)
+    {
+        col.data ~= values;
+    }
+
     /** 
      * Set some value by index.
      *
