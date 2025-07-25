@@ -106,6 +106,7 @@ class DataFrame
      * Returns: The data value.
      */
     DataValue opIndex(size_t row, string col) => this[col].getValue(row);
+
     /**
      * Get a data value at a specific row and column index.
      *
@@ -148,18 +149,21 @@ class DataFrame
      * Returns: The number of rows.
      */
     @property size_t rows() const => columns_.length > 0 ? columns_[0].length : 0;
+
     /**
      * Get the number of columns in the DataFrame.
      *
      * Returns: The number of columns.
      */
     @property size_t cols() const => columns_.length;
+
     /**
      * Get the column names of the DataFrame.
      *
      * Returns: An array of column names.
      */
     @property string[] columns() const => columnNames_.dup;
+
     /**
      * Get the shape (rows, columns) of the DataFrame.
      *
@@ -262,7 +266,8 @@ class DataFrame
      *
      * Params:
      *   colName = The name of the column to group by.
-     * Returns: A GroupedDataFrame where keys are unique values from the grouping column and values are DataFrames containing the grouped rows.
+     * Returns: A GroupedDataFrame where keys are unique values from the grouping column 
+     * and values are DataFrames containing the grouped rows.
      */
     GroupedDataFrame groupBy(string colName)
     {
