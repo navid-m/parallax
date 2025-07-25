@@ -33,10 +33,19 @@ class DataFrame
     private string[] columnNames_;
     private size_t[string] nameToIndex_;
 
+    /**
+     * Construct an empty dataframe.
+     */
     this()
     {
     }
 
+    /**
+     * Construct a dataframe with the given columns.
+     *
+     * Params:
+     *   cols = An array of columns to add to the dataframe.
+     */
     this(IColumn[] cols)
     {
         foreach (col; cols)
@@ -340,6 +349,13 @@ class DataFrame
 
     import parallax.datetime;
 
+    /**
+     * Accesses a DateTimeColumn from the DataFrame.
+     *
+     * Params:
+     *   colName = The name of the column to access.
+     * Returns: The DateTimeColumn.
+     */
     DateTimeColumn dt(string colName)
     {
         auto col = cast(DateTimeColumn) this[colName];
@@ -1265,6 +1281,15 @@ class DataFrame
         return sortedData[lower] * (1 - weight) + sortedData[upper] * weight;
     }
 
+    /**
+     * Calculates the counts of unique values in a specified column.
+     *
+     * Params:
+     *   colName = The name of the column to calculate value counts for.
+     *   ascending = If true, sort counts in ascending order; otherwise, descending.
+     *   dropna = If true, exclude missing values from the counts.
+     * Returns: A new dataframe with two columns: one for unique values and one for their counts.
+     */
     auto valueCounts(string colName, bool ascending = false, bool dropna = true)
     {
         enforce(colName in nameToIndex_, "Column '" ~ colName ~ "' not found");
@@ -1677,6 +1702,14 @@ class DataFrame
         file.close();
     }
 
+    /**
+     * Performs a binary operation (e.g., addition, subtraction) between two dataframes.
+     *
+     * Params:
+     *   op = The operation to perform (e.g., "+", "-").
+     *   other = The other dataframe to operate with.
+     * Returns: A new dataframe resulting from the binary operation.
+     */
     DataFrame opBinary(string op)(DataFrame other) if (op == "+" || op == "-")
     {
         enforce(this.shape == other.shape, "DataFrames must have same shape");
@@ -1689,6 +1722,14 @@ class DataFrame
         return new DataFrame(newCols);
     }
 
+    /**
+     * Sorts the dataframe by the values in a specified column.
+     *
+     * Params:
+     *   colName = The name of the column to sort by.
+     *   ascending = If true, sort in ascending order; otherwise, descending.
+     * Returns: A new dataframe sorted by the specified column.
+     */
     DataFrame sortValues(string colName, bool ascending = true)
     {
         enforce(colName in nameToIndex_, "Column '" ~ colName ~ "' not found");
@@ -1728,6 +1769,11 @@ class DataFrame
         return new DataFrame(reorderedCols);
     }
 
+    /**
+     * Calculates the sum of numerical columns in the dataframe.
+     *
+     * Returns: A new dataframe with a single row containing the sums of numerical columns.
+     */
     DataFrame sum()
     {
         if (rows == 0)
@@ -1771,6 +1817,11 @@ class DataFrame
         return new DataFrame(resultCols);
     }
 
+    /**
+     * Calculates the mean of numerical columns in the dataframe.
+     *
+     * Returns: A new dataframe with a single row containing the means of numerical columns.
+     */
     DataFrame mean()
     {
         if (rows == 0)
@@ -1823,6 +1874,11 @@ class DataFrame
         return new DataFrame(resultCols);
     }
 
+    /**
+     * Calculates the maximum value of numerical columns in the dataframe.
+     *
+     * Returns: A new dataframe with a single row containing the maximums of numerical columns.
+     */
     DataFrame max()
     {
         if (rows == 0)
@@ -1891,6 +1947,11 @@ class DataFrame
         return new DataFrame(resultCols);
     }
 
+    /**
+     * Calculates the minimum value of numerical columns in the dataframe.
+     *
+     * Returns: A new dataframe with a single row containing the minimums of numerical columns.
+     */
     DataFrame min()
     {
         if (rows == 0)
@@ -1959,6 +2020,16 @@ class DataFrame
         return new DataFrame(resultCols);
     }
 
+    /**
+     * Merges this dataframe with another dataframe based on a common column.
+     *
+     * Params:
+     *   other = The other dataframe to merge with.
+     *   on = The name of the column to join on.
+     *   how = The type of merge to be performed ("inner", "left").
+     *
+     * Returns: A new dataframe resulting from the merge operation.
+     */
     DataFrame merge(DataFrame other, string on, string how = "inner")
     {
         enforce(on in nameToIndex_, "Join column '" ~ on ~ "' not found in left DataFrame");
@@ -2036,12 +2107,24 @@ class DataFrame
         return new DataFrame(resultCols);
     }
 
+    /**
+     * Creates a shallow copy of the dataframe.
+     *
+     * Returns: A new dataframe with copies of the original columns.
+     */
     DataFrame copy()
     {
         auto newCols = columns_.map!(col => col.copy()).array;
         return new DataFrame(newCols);
     }
 
+    /**
+     * Drop specified columns from the dataframe.
+     *
+     * Params:
+     *   colNames = An array of column names to drop.
+     * Returns: A new dataframe without the specified columns.
+     */
     DataFrame drop(string[] colNames...)
     {
         IColumn[] keepCols;
@@ -2055,6 +2138,11 @@ class DataFrame
         return new DataFrame(keepCols);
     }
 
+    /**
+     * Drop rows from the dataframe that contain any missing or null values.
+     *
+     * Returns: A new dataframe with rows containing missing values removed.
+     */
     DataFrame dropna()
     {
         if (rows == 0)
@@ -2109,6 +2197,13 @@ class DataFrame
         return new DataFrame(newCols);
     }
 
+    /**
+     * Rename columns in the dataframe.
+     *
+     * Params:
+     *   mapping = A string-to-string associative array where keys are old column names and values are new column names.
+     * Returns: A new dataframe with renamed columns.
+     */
     DataFrame rename(string[string] mapping)
     {
         auto newCols = new IColumn[](cols);
