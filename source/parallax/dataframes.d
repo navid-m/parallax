@@ -1547,21 +1547,49 @@ class DataFrame
             writeln("... (", cols - maxCols, " more columns)");
     }
 
-    void show(size_t maxRows = 10, bool showIndex = false)
+    void show(size_t maxRows = 10, size_t maxCols = 20, size_t maxColWidth = 20, bool showIndex = false)
     {
         import std.algorithm : min;
         import std.conv : to;
         import std.stdio : writeln;
         import ark.ui : ArkTerm;
+        import std.array : insertInPlace;
 
         writeln("DataFrame(", rows, " rows, ", cols, " columns)");
 
         size_t displayRows = min(maxRows, rows);
+        size_t displayColsCount = min(maxCols, this.cols);
 
         string[] headers;
         if (showIndex)
             headers ~= "";
-        headers ~= columnNames_[];
+
+        IColumn[] displayColsArr;
+
+        if (this.cols > displayColsCount)
+        {
+            size_t side = displayColsCount / 2;
+            displayColsArr ~= columns_[0 .. side];
+            displayColsArr ~= columns_[$ - (displayColsCount - side) .. $];
+        }
+        else
+        {
+            displayColsArr = columns_.dup;
+        }
+
+        foreach (col; displayColsArr)
+        {
+            if (col.name.length > maxColWidth)
+                headers ~= col.name[0 .. maxColWidth - 3] ~ "...";
+            else
+                headers ~= col.name;
+        }
+
+        if (this.cols > displayColsCount)
+        {
+            size_t side = displayColsCount / 2;
+            insertInPlace(headers, side + (showIndex ? 1 : 0), "...");
+        }
 
         string[][] tableData;
         foreach (i; 0 .. displayRows)
@@ -1569,8 +1597,15 @@ class DataFrame
             string[] row;
             if (showIndex)
                 row ~= to!string(i);
-            foreach (col; columns_)
+
+            foreach (col; displayColsArr)
                 row ~= col.toString(i);
+
+            if (this.cols > displayColsCount)
+            {
+                size_t side = displayColsCount / 2;
+                insertInPlace(row, side + (showIndex ? 1 : 0), "...");
+            }
             tableData ~= row;
         }
 
@@ -1578,6 +1613,8 @@ class DataFrame
 
         if (rows > maxRows)
             writeln("... (", rows - maxRows, " more rows)");
+        if (this.cols > displayColsCount)
+            writeln("... (", this.cols - displayColsCount, " more columns)");
     }
 
     static DataFrame readCsv(string filename, bool hasHeader = true, char delimiter = ',')
