@@ -1,3 +1,9 @@
+/**
+ * Authors: Navid M
+ * License: GPL3
+ * Description: Contains operations for dataframes.
+ */
+
 module parallax.dataframes;
 
 import parallax.columns;

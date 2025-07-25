@@ -1,3 +1,9 @@
+/**
+ * Authors: Navid M
+ * License: GPL3
+ * Description: Contains operations for columnar operations.
+ */
+
 module parallax.columns;
 
 import parallax.values;

@@ -1,3 +1,9 @@
+/**
+ * Authors: Navid M
+ * License: GPL3
+ * Description: Contains operations for datetime handling.
+ */
+
 module parallax.datetime;
 
 import std.datetime;
