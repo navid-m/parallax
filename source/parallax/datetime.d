@@ -16,36 +16,102 @@ import std.range;
 import parallax.values;
 import parallax.columns;
 
+/**
+ * A date and time with millisecond precision.
+ */
 struct ParallaxDateTime
 {
     SysTime timestamp;
 
+    /**
+     * Construct a ParallaxDateTime from a SysTime object.
+     *
+     * Params:
+     *   dt = The `SysTime` object.
+     */
     this(SysTime dt)
     {
         timestamp = dt;
     }
 
+    /**
+     * Construct a ParallaxDateTime from a DateTime object and an optional TimeZone.
+     *
+     * Params:
+     *   dt = The `DateTime` object.
+     *   tz = The `TimeZone` (defaults to UTC).
+     */
     this(DateTime dt, immutable TimeZone tz = UTC())
     {
         timestamp = SysTime(dt, tz);
     }
 
+    /**
+     * Construct a date time object from individual date and time components.
+     *
+     * Params:
+     *   year = The year.
+     *   month = The month (1-12).
+     *   day = The day of the month (1-31).
+     *   hour = The hour (0-23, defaults to 0).
+     *   minute = The minute (0-59, defaults to 0).
+     *   second = The second (0-59, defaults to 0).
+     *   msecs = The milliseconds (0-999, defaults to 0).
+     */
     this(int year, int month, int day, int hour = 0, int minute = 0, int second = 0, int msecs = 0)
     {
         auto dt = DateTime(year, month, day, hour, minute, second);
         timestamp = SysTime(dt, msecs.msecs, UTC());
     }
 
+    /**
+     * Get the year component of the datetime.
+     */
     @property int year() const => timestamp.year;
+
+    /**
+     * Get the month component of the datetime (1-12).
+     */
     @property int month() const => cast(int) timestamp.month;
+
+    /**
+     * Get the day component of the datetime (1-31).
+     */
     @property int day() const => timestamp.day;
+
+    /**
+     * Get the hour component of the datetime (0-23).
+     */
     @property int hour() const => timestamp.hour;
+
+    /**
+     * Get the minute component of the datetime (0-59).
+     */
     @property int minute() const => timestamp.minute;
+
+    /**
+     * Get the second component of the datetime (0-59).
+     */
     @property int second() const => timestamp.second;
+
+    /**
+     * Get the millisecond component of the datetime (0-999).
+     */
     @property int millisecond() const => cast(int) timestamp.fracSecs.total!"msecs";
+
+    /**
+     * Get the day of the week (0 for Sunday, 6 for Saturday).
+     */
     @property int dayOfWeek() const => cast(int) timestamp.dayOfWeek;
+
+    /**
+     * Get the day of the year (1-366).
+     */
     @property int dayOfYear() const => timestamp.dayOfYear;
 
+    /**
+     * Get the full name of the day of the week.
+     */
     @property string dayName() const
     {
         final switch (timestamp.dayOfWeek)
@@ -67,6 +133,9 @@ struct ParallaxDateTime
         }
     }
 
+    /**
+     * Get the full name of the month.
+     */
     @property string monthName() const
     {
         final switch (timestamp.month)
@@ -98,6 +167,14 @@ struct ParallaxDateTime
         }
     }
 
+    /**
+     * Adds or subtracts a Duration from the ParallaxDateTime.
+     *
+     * Params:
+     *   dur = The `Duration` to add or subtract.
+     * Returns:
+     *   A new `ParallaxDateTime` object representing the result.
+     */
     ParallaxDateTime opBinary(string op)(Duration dur) const
     if (op == "+" || op == "-")
     {
@@ -107,9 +184,23 @@ struct ParallaxDateTime
             return ParallaxDateTime(timestamp - dur);
     }
 
+    /**
+     * Calculates the duration between two ParallaxDateTime objects.
+     * Params:
+     *   other = The other `ParallaxDateTime` object.
+     * Returns:
+     *   A `Duration` representing the difference.
+     */
     Duration opBinary(string op)(ParallaxDateTime other) const if (op == "-") =>
         timestamp - other.timestamp;
 
+    /**
+     * Compares two ParallaxDateTime objects.
+     * Params:
+     *   other = The other ParallaxDateTime object.
+     * Returns:
+     *   -1 if this is less than other, 0 if equal, 1 if greater.
+     */
     int opCmp(const ParallaxDateTime other) const
     {
         if (timestamp < other.timestamp)
@@ -119,10 +210,41 @@ struct ParallaxDateTime
         return 0;
     }
 
+    /**
+     * Checks if two ParallaxDateTime objects are equal.
+     *
+     * Params:
+     *   other = The other `ParallaxDateTime` object.
+     *
+     * Returns:
+     *   true if the timestamps are equal, false otherwise.
+     */
     bool opEquals(const ParallaxDateTime other) const => timestamp == other.timestamp;
+
+    /**
+     * Returns a hash string representation of the ParallaxDateTime.
+     * Returns:
+     *   A string suitable for hashing.
+     */
     string toHash() const => this.toString();
+
+    /**
+     * Return an ISO 8601 extended string representation of the ParallaxDateTime.
+     *
+     * Returns:
+     *   An ISO 8601 extended string.
+     */
     string toString() const => timestamp.toISOExtString();
 
+    /**
+     * Format the ParallaxDateTime according to a format string.
+     *
+     * Params:
+     *   fmt = The format string. Supported specifiers: %Y (year), %m (month), %d (day), %H (hour), %M (minute), %S (second), %A (day name), %B (month name).
+     *
+     * Returns:
+     *   The formatted datetime string.
+     */
     string strftime(string fmt) const
     {
         auto result = fmt;
@@ -137,6 +259,13 @@ struct ParallaxDateTime
         return result;
     }
 
+    /**
+     * Floor the ParallaxDateTime to the nearest specified frequency.
+     * Params:
+     *   freq = The frequency to floor to (e.g., "day", "hour", "minute", "second").
+     * Returns:
+     *   A new `ParallaxDateTime` object floored to the specified frequency.
+     */
     ParallaxDateTime floor(string freq) const
     {
         auto dt = DateTime(
@@ -166,6 +295,14 @@ struct ParallaxDateTime
         }
     }
 
+    /**
+     * Ceils the ParallaxDateTime to the nearest specified frequency.
+     *
+     * Params:
+     *   freq = The frequency to ceil to (e.g., "day", "hour", "minute", "second").
+     * Returns:
+     *   A new `ParallaxDateTime` object ceiled to the specified frequency.
+     */
     ParallaxDateTime ceil(string freq) const
     {
         auto floored = floor(freq);
@@ -192,6 +329,17 @@ struct ParallaxDateTime
     }
 }
 
+/**
+ * Parses a date and time string into a ParallaxDateTime object.
+ * It attempts to auto-detect the format if no format string is provided.
+ *
+ * Params:
+ *   dateStr = The date and time string to parse.
+ *   format = Optional. The format string to use for parsing. If empty, auto-detection is used.
+ *
+ * Returns:
+ *   A ParallaxDateTime object.
+ */
 ParallaxDateTime parseDateTime(string dateStr, string format = "")
 {
     dateStr = dateStr.strip();
@@ -268,6 +416,16 @@ private ParallaxDateTime autoParseDateTime(string dateStr)
     throw new Exception("Could not parse datetime: " ~ dateStr);
 }
 
+/**
+ * Parses a date and time string using a specified format.
+ * Params:
+ *   dateStr = The date and time string to parse.
+ *   format = The format string to use for parsing.
+ * Returns:
+ *   A `ParallaxDateTime` object.
+ * Throws:
+ *   `Exception` if the string does not match the format.
+ */
 private ParallaxDateTime parseWithFormat(string dateStr, string format)
 {
     string pattern = format;
