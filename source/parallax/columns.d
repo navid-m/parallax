@@ -166,6 +166,13 @@ class TCol(T) : IColumn
 
     private Column!T col;
 
+    /** 
+     * Construct the typed column given a name and some data.
+     *
+     * Params:
+     *   name = The name of the typed column
+     *   data = The data
+     */
     this(string name, T[] data = [])
     {
         col = new Column!T(name, data);
