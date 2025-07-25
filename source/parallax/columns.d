@@ -218,16 +218,32 @@ class TCol(T) : IColumn
     IColumn slice(size_t start, size_t end) => new TCol!T(col.name, col.data[start .. end]);
     IColumn copy() => new TCol!T(col.name, col.data.dup);
 
+    /** 
+     * Append some value to the column.
+     *
+     * Params:
+     *   value = The value to append
+     */
     void append(T value)
     {
         col.append(value);
     }
 
+    /** 
+     * Get back data from the column as a list
+     *
+     * Returns: The column data
+     */
     T[] getData()
     {
         return col.data;
     }
 
+    /** 
+     * Create an empty column.
+     *
+     * Returns: The empty column 
+     */
     IColumn createEmpty()
     {
         return new TCol!T(col.name, []);
