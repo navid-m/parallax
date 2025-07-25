@@ -1,7 +1,7 @@
 /**
  * Authors: Navid M
  * License: GPL3
- * Description: Contains operations for columnar operations.
+ * Description: Contains operations for columnar data.
  */
 
 module parallax.columns;
