@@ -279,15 +279,9 @@ class TCol(T) : IColumn
      *
      * Returns: The empty column 
      */
-    IColumn createEmpty()
-    {
-        return new TCol!T(col.name, []);
-    }
+    IColumn createEmpty() => new TCol!T(col.name, []);
 
-    IColumn copyWithName(string newName)
-    {
-        return new TCol!T(newName, col.data.dup);
-    }
+    IColumn copyWithName(string newName) => new TCol!T(newName, col.data.dup);
 
     IColumn reorder(size_t[] indices)
     {
