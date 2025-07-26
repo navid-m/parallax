@@ -277,3 +277,218 @@ package unittest
     auto loadedNames = loadedDf.columns();
     loadedDf.show();
 }
+
+package unittest
+{
+    import std.file;
+    import std.format;
+    import std.datetime.stopwatch;
+    import std.stdio : writeln;
+
+    auto names = ["Alice Johnson", "Bob Smith", "Charlie Brown", "Diana Prince"];
+    auto ages = [25, 30, 35, 28];
+    auto salaries = [50_000.0, 65_000.0, 75_000.0, 58_000.0];
+    auto departments = ["Engineering", "Marketing", "Finance", "HR"];
+
+    auto originalDf = createDataFrame(
+        ["name", "age", "salary", "department"],
+        names, ages, salaries, departments
+    );
+
+    writeln("Original DataFrame:");
+    originalDf.show();
+
+    string testFile = "test_basic.parquet";
+    scope (exit)
+        if (exists(testFile))
+            remove(testFile);
+
+    writeln("\nParquet Info for Original DataFrame:");
+    originalDf.parquetInfo();
+
+    auto sw = StopWatch(AutoStart.yes);
+    originalDf.toParquet(testFile);
+    writeln("Parquet write time: ", sw.peek.total!"msecs", " ms");
+
+    assert(exists(testFile), "Parquet file was not created");
+    writeln("Parquet file size: ", getSize(testFile), " bytes");
+
+    sw.reset();
+    sw.start();
+    auto loadedDf = DataFrame.readParquet(testFile);
+    writeln("Parquet read time: ", sw.peek.total!"msecs", " ms");
+
+    writeln("\nLoaded DataFrame:");
+    loadedDf.show();
+
+    auto originalNames = originalDf.columns();
+    auto loadedNames = loadedDf.columns();
+
+    writeln("\nData Integrity Checks:");
+    writeln("Original columns: ", originalNames);
+    writeln("Loaded columns: ", loadedNames);
+
+    assert(originalNames.length == loadedNames.length,
+        format("Column count mismatch: original=%d, loaded=%d",
+            originalNames.length, loadedNames.length));
+
+    foreach (i, origName; originalNames)
+    {
+        assert(origName == loadedNames[i],
+            format("Column name mismatch at index %d: '%s' vs '%s'",
+                i, origName, loadedNames[i]));
+    }
+
+    assert(originalDf.shape == loadedDf.shape,
+        format("DataFrame shape mismatch: original=%s, loaded=%s",
+            originalDf.shape, loadedDf.shape));
+
+    writeln("Rows match: ", originalDf.rows == loadedDf.rows);
+    writeln("Columns match: ", originalDf.cols == loadedDf.cols);
+    writeln("\nParquet Info for Loaded DataFrame:");
+    loadedDf.parquetInfo();
+    writeln("\n=== Testing Edge Cases ===");
+    auto emptyDf = new DataFrame();
+    string emptyTestFile = "test_empty.parquet";
+    scope (exit)
+        if (exists(emptyTestFile))
+            remove(emptyTestFile);
+
+    try
+    {
+        emptyDf.toParquet(emptyTestFile);
+        assert(false, "Should have thrown exception for empty DataFrame");
+    }
+    catch (Exception e)
+    {
+        writeln("✓ Empty DataFrame correctly rejected: ", e.msg);
+    }
+
+    auto singleNames = ["Single User"];
+    auto singleAges = [42];
+    auto singleSalaries = [80_000.0];
+    auto singleDepartments = ["IT"];
+
+    auto singleRowDf = createDataFrame(
+        ["name", "age", "salary", "department"],
+        singleNames, singleAges, singleSalaries, singleDepartments
+    );
+
+    string singleRowFile = "test_single_row.parquet";
+    scope (exit)
+        if (exists(singleRowFile))
+            remove(singleRowFile);
+
+    writeln("\nTesting single row DataFrame:");
+    singleRowDf.show();
+
+    sw.reset();
+    sw.start();
+    singleRowDf.toParquet(singleRowFile);
+    writeln("Single row write time: ", sw.peek.total!"msecs", " ms");
+
+    sw.reset();
+    sw.start();
+    auto loadedSingleRowDf = DataFrame.readParquet(singleRowFile);
+    writeln("Single row read time: ", sw.peek.total!"msecs", " ms");
+
+    writeln("Loaded single row DataFrame:");
+    loadedSingleRowDf.show();
+
+    assert(singleRowDf.shape == loadedSingleRowDf.shape, "Single row DataFrame shape mismatch");
+    writeln("✓ Single row DataFrame test passed");
+
+    auto mixedNames = ["Test User", "Another User", "", "Null User"];
+    auto mixedAges = [0, -1, 999, 25];
+    auto mixedSalaries = [0.0, -1000.0, 1_000_000.0, 45_000.5];
+    auto mixedDepartments = [
+        "", "Special Chars: éñ中",
+        "Very Long Department Name That Exceeds Normal Limits", "Normal"
+    ];
+
+    auto mixedDf = createDataFrame(
+        ["name", "age", "salary", "department"],
+        mixedNames, mixedAges, mixedSalaries, mixedDepartments
+    );
+
+    string mixedTestFile = "test_mixed.parquet";
+    scope (exit)
+        if (exists(mixedTestFile))
+            remove(mixedTestFile);
+
+    writeln("\nTesting DataFrame with mixed/special values:");
+    mixedDf.show();
+    mixedDf.parquetInfo();
+
+    sw.reset();
+    sw.start();
+    mixedDf.toParquet(mixedTestFile);
+    writeln("Mixed data write time: ", sw.peek.total!"msecs", " ms");
+
+    sw.reset();
+    sw.start();
+    auto loadedMixedDf = DataFrame.readParquet(mixedTestFile);
+    writeln("Mixed data read time: ", sw.peek.total!"msecs", " ms");
+
+    writeln("Loaded mixed DataFrame:");
+    loadedMixedDf.show();
+
+    assert(mixedDf.shape == loadedMixedDf.shape, "Mixed DataFrame shape mismatch");
+    writeln("✓ Mixed data DataFrame test passed");
+
+    writeln("\n=== Performance Comparison: Parquet vs CSV ===");
+
+    string csvCompareFile = "test_compare.csv";
+    string parquetCompareFile = "test_compare.parquet";
+    scope (exit)
+    {
+        if (exists(csvCompareFile))
+            remove(csvCompareFile);
+        if (exists(parquetCompareFile))
+            remove(parquetCompareFile);
+    }
+
+    sw.reset();
+    sw.start();
+    originalDf.toCsv(csvCompareFile);
+    auto csvWriteTime = sw.peek.total!"msecs";
+
+    sw.reset();
+    sw.start();
+    auto csvLoadedDf = DataFrame.readCsv(csvCompareFile);
+    auto csvReadTime = sw.peek.total!"msecs";
+
+    sw.reset();
+    sw.start();
+    originalDf.toParquet(parquetCompareFile);
+    auto parquetWriteTime = sw.peek.total!"msecs";
+
+    sw.reset();
+    sw.start();
+    auto parquetLoadedDf = DataFrame.readParquet(parquetCompareFile);
+    auto parquetReadTime = sw.peek.total!"msecs";
+    auto csvSize = getSize(csvCompareFile);
+    auto parquetSize = getSize(parquetCompareFile);
+
+    writeln("Performance Results:");
+    writeln(format("CSV    - Write: %d ms, Read: %d ms, Size: %d bytes",
+            csvWriteTime, csvReadTime, csvSize));
+    writeln(format("Parquet - Write: %d ms, Read: %d ms, Size: %d bytes",
+            parquetWriteTime, parquetReadTime, parquetSize));
+    writeln(format("Size ratio (Parquet/CSV): %.2f",
+            cast(double) parquetSize / csvSize));
+
+    writeln("\n=== Testing Error Handling ===");
+
+    try
+    {
+        auto nonExistentDf = DataFrame.readParquet("non_existent_file.parquet");
+        assert(false, "Should have thrown exception for non-existent file");
+    }
+    catch (Exception e)
+    {
+        writeln("✓ Non-existent file correctly handled: ", e.msg);
+    }
+
+    writeln("\n✓ All Parquet tests completed successfully!");
+}

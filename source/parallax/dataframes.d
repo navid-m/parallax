@@ -1474,6 +1474,349 @@ class DataFrame
         return new DataFrame(resultCols);
     }
 
+    import parallax.parquet;
+
+    static DataFrame readParquet(string filename)
+    {
+        import std.algorithm : max;
+        import std.parallelism : parallel, totalCPUs;
+        import std.range : chunks, enumerate, iota;
+        import std.array : array, appender;
+
+        auto parquetFile = new ParquetFile(filename);
+        scope (exit)
+            parquetFile.close();
+
+        try
+        {
+            parquetFile.openForReading();
+        }
+        catch (ParquetException e)
+        {
+            throw new Exception("Failed to read Parquet file '" ~ filename ~ "': " ~ e.msg);
+        }
+
+        auto schema = parquetFile.getSchema();
+        auto rowCount = parquetFile.getRowCount();
+        auto colCount = parquetFile.getColumnCount();
+
+        if (rowCount == 0 || colCount == 0)
+        {
+            return new DataFrame();
+        }
+
+        auto columns = new TCol!string[](colCount);
+        auto columnNames = parquetFile.getColumnNames();
+
+        foreach (i, colName; columnNames)
+        {
+            columns[i] = new TCol!string(colName);
+            columns[i].reserve(rowCount);
+        }
+
+        auto numThreads = totalCPUs;
+        auto chunkSize = max(1, rowCount / numThreads);
+        auto rowIndices = iota(0, rowCount).chunks(chunkSize).array;
+        auto results = new string[][][](rowIndices.length);
+
+        foreach (chunkIdx, chunk; rowIndices)
+        {
+            results[chunkIdx] = new string[][](colCount);
+            foreach (ref colData; results[chunkIdx])
+            {
+                colData.reserve(chunk.length);
+            }
+        }
+
+        foreach (item; parallel(rowIndices.enumerate))
+        {
+            auto chunkIdx = item.index;
+            auto chunk = item.value;
+
+            foreach (rowIdx; chunk)
+            {
+                auto row = parquetFile.readRow(rowIdx);
+                foreach (colIdx, value; row)
+                {
+                    if (colIdx < colCount)
+                    {
+                        string strValue = convertParquetValueToString(value);
+                        results[chunkIdx][colIdx] ~= strValue;
+                    }
+                }
+            }
+        }
+
+        foreach (colIdx; 0 .. colCount)
+        {
+            foreach (chunkResult; results)
+            {
+                if (colIdx < chunkResult.length && chunkResult[colIdx].length > 0)
+                {
+                    columns[colIdx].appendRange(chunkResult[colIdx]);
+                }
+            }
+        }
+
+        auto finalCols = new IColumn[](columns.length);
+        foreach (i, col; columns)
+        {
+            finalCols[i] = cast(IColumn) col;
+        }
+
+        return new DataFrame(finalCols);
+    }
+
+    void toParquet(string filename, bool compress = true)
+    {
+        import std.algorithm : max;
+        import std.parallelism : parallel, totalCPUs;
+        import std.range : chunks, enumerate, iota;
+        import std.array : array, appender;
+
+        if (rows == 0 || cols == 0)
+        {
+            throw new Exception("Cannot write empty DataFrame to Parquet");
+        }
+
+        auto schema = TableSchema();
+        foreach (i, colName; columnNames_)
+        {
+            auto inferredType = inferParquetType(columns_[i]);
+            schema.addColumn(colName, inferredType);
+        }
+
+        auto parquetFile = new ParquetFile(filename);
+        scope (exit)
+            parquetFile.close();
+
+        try
+        {
+            parquetFile.openForWriting(schema);
+        }
+        catch (ParquetException e)
+        {
+            throw new Exception("Failed to create Parquet file '" ~ filename ~ "': " ~ e.msg);
+        }
+
+        auto numThreads = totalCPUs;
+        auto chunkSize = max(1, rows / numThreads);
+        auto rowChunks = iota(0, rows).chunks(chunkSize).array;
+        foreach (chunk; rowChunks)
+        {
+            ParquetRow[] chunkRows;
+            chunkRows.reserve(chunk.length);
+
+            foreach (rowIdx; chunk)
+            {
+                ParquetRow row;
+                row.reserve(cols);
+
+                foreach (colIdx; 0 .. cols)
+                {
+                    string strValue = columns_[colIdx].toString(rowIdx);
+                    auto parquetValue = convertStringToParquetValue(strValue, schema
+                            .columns[colIdx].type);
+                    row ~= parquetValue;
+                }
+
+                chunkRows ~= row;
+            }
+
+            parquetFile.writeRows(chunkRows);
+        }
+    }
+
+    private static string convertParquetValueToString(ParquetValue value)
+    {
+        import std.conv : to;
+
+        if (auto boolPtr = value.peek!bool())
+        {
+            return (*boolPtr).to!string;
+        }
+        else if (auto intPtr = value.peek!int())
+        {
+            return (*intPtr).to!string;
+        }
+        else if (auto longPtr = value.peek!long())
+        {
+            return (*longPtr).to!string;
+        }
+        else if (auto floatPtr = value.peek!float())
+        {
+            return (*floatPtr).to!string;
+        }
+        else if (auto doublePtr = value.peek!double())
+        {
+            return (*doublePtr).to!string;
+        }
+        else if (auto strPtr = value.peek!string())
+        {
+            return *strPtr;
+        }
+        else if (auto bytesPtr = value.peek!(ubyte[])())
+        {
+            return cast(string)(*bytesPtr);
+        }
+
+        return value.toString();
+    }
+
+    private static ParquetValue convertStringToParquetValue(string strValue, ParquetType targetType)
+    {
+        import std.conv : to, ConvException;
+        import std.string : strip;
+
+        strValue = strValue.strip();
+
+        try
+        {
+            final switch (targetType)
+            {
+            case ParquetType.BOOLEAN:
+                bool boolVal = strValue.toLower() == "true" || strValue == "1";
+                return ParquetValue(boolVal);
+
+            case ParquetType.INT32:
+                return ParquetValue(strValue.to!int);
+
+            case ParquetType.INT64:
+                return ParquetValue(strValue.to!long);
+
+            case ParquetType.FLOAT:
+                return ParquetValue(strValue.to!float);
+
+            case ParquetType.DOUBLE:
+                return ParquetValue(strValue.to!double);
+
+            case ParquetType.BYTE_ARRAY:
+            case ParquetType.FIXED_LEN_BYTE_ARRAY:
+                return ParquetValue(strValue);
+            }
+        }
+        catch (ConvException e)
+        {
+            return ParquetValue(strValue);
+        }
+    }
+
+    private static ParquetType inferParquetType(IColumn column)
+    {
+        import std.conv : to, ConvException;
+        import std.string : strip, toLower;
+        import std.algorithm : canFind;
+
+        if (column.length == 0)
+        {
+            return ParquetType.BYTE_ARRAY;
+        }
+
+        size_t sampleSize = std.algorithm.min(100, column.length);
+        int intCount = 0;
+        int floatCount = 0;
+        int boolCount = 0;
+
+        foreach (i; 0 .. sampleSize)
+        {
+            string value = column.toString(i).strip().toLower();
+
+            if (value.length == 0)
+                continue;
+
+            if (value == "true" || value == "false" || value == "0" || value == "1")
+            {
+                boolCount++;
+                continue;
+            }
+
+            try
+            {
+                value.to!long;
+                intCount++;
+                continue;
+            }
+            catch (ConvException)
+            {
+            }
+
+            try
+            {
+                value.to!double;
+                floatCount++;
+                continue;
+            }
+            catch (ConvException)
+            {
+            }
+        }
+
+        if (boolCount > sampleSize * 0.8)
+        {
+            return ParquetType.BOOLEAN;
+        }
+        else if (intCount > sampleSize * 0.8)
+        {
+            return ParquetType.INT64;
+        }
+        else if ((intCount + floatCount) > sampleSize * 0.8)
+        {
+            return ParquetType.DOUBLE;
+        }
+        else
+        {
+            return ParquetType.BYTE_ARRAY;
+        }
+    }
+
+    /**
+     * Get basic information about the DataFrame in Parquet-compatible format
+     */
+    void parquetInfo()
+    {
+        import std.stdio : writeln, writef;
+
+        writeln("DataFrame Parquet Info:");
+        writeln("Rows: ", rows);
+        writeln("Columns: ", cols);
+        writeln("Memory usage (estimated): ", estimateMemoryUsage(), " bytes");
+        writeln();
+        writeln("Column Information:");
+        writef("%-20s %-15s %-10s\n", "Column", "Inferred Type", "Non-null");
+        writeln("-".repeat(50));
+
+        foreach (i, colName; columnNames_)
+        {
+            auto inferredType = inferParquetType(columns_[i]);
+            auto nonNullCount = countNonNullValues(columns_[i]);
+            writef("%-20s %-15s %-10s\n", colName, inferredType.to!string, nonNullCount.to!string);
+        }
+    }
+
+    private size_t estimateMemoryUsage()
+    {
+        size_t totalSize = 0;
+        foreach (col; columns_)
+        {
+            totalSize += col.length * 10;
+        }
+        return totalSize;
+    }
+
+    private size_t countNonNullValues(IColumn column)
+    {
+        size_t count = 0;
+        foreach (i; 0 .. column.length)
+        {
+            string value = column.toString(i).strip();
+            if (value.length > 0 && value != "null" && value != "NULL" && value != "nan" && value != "NaN")
+            {
+                count++;
+            }
+        }
+        return count;
+    }
+
     DataFrame apply(T)(T delegate(string[]) func, int axis = 0)
     {
         if (axis == 0)
