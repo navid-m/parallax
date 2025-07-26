@@ -375,9 +375,9 @@ package unittest
     );
 
     string singleRowFile = "test_single_row.parquet";
-    // scope (exit)
-    //     if (exists(singleRowFile))
-    //         remove(singleRowFile);
+    scope (exit)
+        if (exists(singleRowFile))
+            remove(singleRowFile);
 
     writeln("\nTesting single row DataFrame:");
     singleRowDf.show();
@@ -412,9 +412,9 @@ package unittest
     );
 
     string mixedTestFile = "test_mixed.parquet";
-    // scope (exit)
-    //     if (exists(mixedTestFile))
-    //         remove(mixedTestFile);
+    scope (exit)
+        if (exists(mixedTestFile))
+            remove(mixedTestFile);
 
     writeln("\nTesting DataFrame with mixed/special values:");
     mixedDf.show();
