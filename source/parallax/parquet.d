@@ -126,6 +126,15 @@ class ParquetWriteException : ParquetException
 enum PARQUET_MAGIC = "PAR1";
 enum PARQUET_VERSION = 1;
 
+struct DataPage
+{
+    ubyte[] data;
+    long numValues;
+    ParquetEncoding encoding;
+    long uncompressedSize;
+    long compressedSize;
+}
+
 class ParquetFile
 {
     private
@@ -378,7 +387,7 @@ private:
         file.seek(fileSize - 8);
         ubyte[4] footerLengthBytes;
         file.rawRead(footerLengthBytes);
-        uint footerLength = littleEndianToNative!uint(footerLengthBytes);
+        uint footerLength = littleEndianToNative!uint(footerLengthBytes[0 .. 4]);
 
         ubyte[4] endMagic;
         file.rawRead(endMagic);
@@ -402,190 +411,459 @@ private:
 
     void parseFooter(ubyte[] footerData)
     {
-        // TODO: Parse thrift properly.
-        size_t offset = 0;
+        parseSimplifiedThriftFooter(footerData);
+    }
 
-        if (footerData.length < 20)
-        {
-            throw new ParquetReadException("Footer too small");
-        }
+    void parseSimplifiedThriftFooter(ubyte[] footerData)
+    {
+        size_t offset = 0;
 
         metadata.version_ = PARQUET_VERSION;
         metadata.createdBy = "Unknown";
         metadata.numRows = 0;
         metadata.schema = TableSchema();
+        metadata.rowGroups = [];
 
-        inferSchemaFromFile();
-    }
+        if (footerData.length < 16)
+        {
+            throw new ParquetReadException("Footer too small");
+        }
 
-    void inferSchemaFromFile()
-    {
-        file.seek(4);
-        data = [];
         try
         {
-            readSimplifiedData();
-        }
-        catch (Exception e)
-        {
-            metadata.schema.addColumn("data", ParquetType.BYTE_ARRAY);
-        }
-    }
+            ubyte[4] versionBytes = footerData[0 .. 4];
+            metadata.version_ = littleEndianToNative!int(versionBytes);
+            offset += 4;
 
-    void readSimplifiedData()
-    {
-        file.seek(4);
-        long footerStart = file.size - 8 - 4;
-        string content;
-        ubyte[] buffer = new ubyte[cast(size_t)(footerStart - 4)];
-        try
-        {
-            file.rawRead(buffer);
-            try
+            ubyte[4] numColBytes = footerData[offset .. offset + 4];
+            uint numColumns = littleEndianToNative!uint(numColBytes);
+            offset += 4;
+
+            for (uint i = 0; i < numColumns && offset + 8 < footerData.length; i++)
             {
-                content = cast(string) buffer;
-                parseAsTabSeparated(content);
-                return;
+                ubyte[4] nameLenBytes = footerData[offset .. offset + 4];
+                uint nameLength = littleEndianToNative!uint(nameLenBytes);
+                offset += 4;
+
+                if (offset + nameLength + 4 > footerData.length)
+                    break;
+
+                string columnName = cast(string) footerData[offset .. offset + nameLength];
+                offset += nameLength;
+
+                ubyte[4] typeBytes = footerData[offset .. offset + 4];
+                uint typeValue = littleEndianToNative!uint(typeBytes);
+                offset += 4;
+
+                ParquetType columnType = cast(ParquetType)(typeValue % 7);
+                metadata.schema.addColumn(columnName, columnType);
             }
-            catch (Exception)
+
+            if (offset + 8 <= footerData.length)
             {
+                ubyte[8] numRowsBytes = footerData[offset .. offset + 8];
+                metadata.numRows = littleEndianToNative!long(numRowsBytes);
+                offset += 8;
             }
-            parseAsBinaryColumns(buffer);
 
-        }
-        catch (Exception e)
-        {
-            throw new ParquetReadException("Could not parse data: " ~ e.msg);
-        }
-    }
-
-    void parseAsTabSeparated(string content)
-    {
-        auto lines = content.splitLines();
-        if (lines.length < 2)
-            return;
-
-        auto headers = lines[0].split('\t');
-        metadata.schema = TableSchema();
-
-        string[][] allRows;
-        foreach (i; 1 .. lines.length)
-        {
-            auto fields = lines[i].split('\t');
-            if (fields.length == headers.length)
+            if (offset + 4 <= footerData.length)
             {
-                allRows ~= fields;
-            }
-        }
+                ubyte[4] numRgBytes = footerData[offset .. offset + 4];
+                uint numRowGroups = littleEndianToNative!uint(numRgBytes);
+                offset += 4;
 
-        foreach (colIdx, header; headers)
-        {
-            auto inferredType = inferTypeFromColumn(allRows, colIdx);
-            metadata.schema.addColumn(header, inferredType);
-        }
-
-        data = [];
-        foreach (row; allRows)
-        {
-            ParquetRow parquetRow;
-            foreach (colIdx, value; row)
-            {
-                if (colIdx < metadata.schema.columns.length)
+                for (uint rg = 0; rg < numRowGroups && offset + 16 < footerData.length;
+                    rg++)
                 {
-                    auto parquetValue = convertStringToParquetValue(value, metadata
-                            .schema.columns[colIdx].type);
-                    parquetRow ~= parquetValue;
+                    RowGroup rowGroup;
+                    ubyte[8] rgRowsBytes = footerData[offset .. offset + 8];
+                    rowGroup.numRows = littleEndianToNative!long(rgRowsBytes);
+                    offset += 8;
+
+                    ubyte[8] rgSizeBytes = footerData[offset .. offset + 8];
+                    rowGroup.totalByteSize = littleEndianToNative!long(rgSizeBytes);
+                    offset += 8;
+
+                    uint numColChunks = cast(uint) metadata.schema.columns.length;
+                    rowGroup.columns = new ColumnChunk[numColChunks];
+
+                    for (uint cc = 0; cc < numColChunks && offset + 24 < footerData.length;
+                        cc++)
+                    {
+                        ColumnChunk chunk;
+                        ubyte[8] offsetBytes = footerData[offset .. offset + 8];
+                        chunk.fileOffset = littleEndianToNative!long(offsetBytes);
+                        offset += 8;
+
+                        chunk.metaData.type = metadata.schema.columns[cc].type;
+                        chunk.metaData.encoding = ParquetEncoding.PLAIN;
+                        chunk.metaData.compression = ParquetCompression.UNCOMPRESSED;
+
+                        ubyte[8] numValBytes = footerData[offset .. offset + 8];
+                        chunk.metaData.numValues = littleEndianToNative!long(numValBytes);
+                        offset += 8;
+
+                        ubyte[8] uncompSizeBytes = footerData[offset .. offset + 8];
+                        chunk.metaData.totalUncompressedSize = littleEndianToNative!long(
+                            uncompSizeBytes);
+                        offset += 8;
+
+                        chunk.metaData.totalCompressedSize = chunk.metaData.totalUncompressedSize;
+                        chunk.metaData.dataPageOffset = chunk.fileOffset;
+
+                        rowGroup.columns[cc] = chunk;
+                    }
+
+                    metadata.rowGroups ~= rowGroup;
                 }
             }
-            data ~= parquetRow;
         }
-
-        metadata.numRows = data.length;
-    }
-
-    void parseAsBinaryColumns(ubyte[] buffer)
-    {
-        metadata.schema = TableSchema();
-        metadata.schema.addColumn("binary_data", ParquetType.BYTE_ARRAY);
-        size_t chunkSize = 1024; // Arbitrary chunk size
-        data = [];
-
-        for (size_t offset = 0; offset < buffer.length; offset += chunkSize)
+        catch (Exception e)
         {
-            size_t end = min(offset + chunkSize, buffer.length);
-            auto chunk = buffer[offset .. end];
-
-            ParquetRow row;
-            row ~= ParquetValue(cast(string) chunk);
-            data ~= row;
+            throw new ParquetReadException("Failed to parse footer: " ~ e.msg);
         }
-
-        metadata.numRows = data.length;
     }
 
     void readRowGroups()
     {
-        // TODO:
-        // 1. Read each row group's column chunks
-        // 2. Decompress if needed
-        // 3. Decode based on encoding type
-        // 4. Reconstruct rows from columnar data
+        data = [];
+
+        foreach (rowGroup; metadata.rowGroups)
+        {
+            readRowGroup(rowGroup);
+        }
+    }
+
+    void readRowGroup(RowGroup rowGroup)
+    {
+        ParquetValue[][] columnData = new ParquetValue[][metadata.schema.columns.length];
+
+        foreach (i, columnChunk; rowGroup.columns)
+        {
+            if (i >= metadata.schema.columns.length)
+                break;
+
+            try
+            {
+                columnData[i] = readColumnChunk(columnChunk);
+            }
+            catch (Exception e)
+            {
+                columnData[i] = new ParquetValue[rowGroup.numRows];
+                foreach (ref val; columnData[i])
+                {
+                    val = getDefaultValue(metadata.schema.columns[i].type);
+                }
+            }
+        }
+
+        for (size_t rowIdx = 0; rowIdx < rowGroup.numRows; rowIdx++)
+        {
+            ParquetRow row;
+            foreach (colIdx; 0 .. metadata.schema.columns.length)
+            {
+                if (colIdx < columnData.length && rowIdx < columnData[colIdx].length)
+                {
+                    row ~= columnData[colIdx][rowIdx];
+                }
+                else
+                {
+                    row ~= getDefaultValue(metadata.schema.columns[colIdx].type);
+                }
+            }
+            data ~= row;
+        }
+    }
+
+    ParquetValue[] readColumnChunk(ColumnChunk columnChunk)
+    {
+        file.seek(columnChunk.fileOffset);
+
+        ubyte[] buffer = new ubyte[cast(size_t) columnChunk.metaData.totalCompressedSize];
+        file.rawRead(buffer);
+
+        return deserializeColumnData(buffer, columnChunk.metaData.type, columnChunk
+                .metaData.numValues);
+    }
+
+    ParquetValue[] deserializeColumnData(ubyte[] buffer, ParquetType type, long numValues)
+    {
+        ParquetValue[] values;
+        size_t offset = 0;
+
+        for (long i = 0; i < numValues && offset < buffer.length; i++)
+        {
+            ParquetValue value;
+            size_t bytesRead = 0;
+
+            final switch (type)
+            {
+            case ParquetType.BOOLEAN:
+                if (offset < buffer.length)
+                {
+                    value = ParquetValue(buffer[offset] != 0);
+                    bytesRead = 1;
+                }
+                break;
+
+            case ParquetType.INT32:
+                if (offset + 4 <= buffer.length)
+                {
+                    ubyte[4] intBytes = buffer[offset .. offset + 4];
+                    value = ParquetValue(littleEndianToNative!int(intBytes));
+                    bytesRead = 4;
+                }
+                break;
+
+            case ParquetType.INT64:
+                if (offset + 8 <= buffer.length)
+                {
+                    ubyte[8] longBytes = buffer[offset .. offset + 8];
+                    value = ParquetValue(littleEndianToNative!long(longBytes));
+                    bytesRead = 8;
+                }
+                break;
+
+            case ParquetType.FLOAT:
+                if (offset + 4 <= buffer.length)
+                {
+                    ubyte[4] floatBytes = buffer[offset .. offset + 4];
+                    uint floatBits = littleEndianToNative!uint(floatBytes);
+                    value = ParquetValue(*cast(float*)&floatBits);
+                    bytesRead = 4;
+                }
+                break;
+
+            case ParquetType.DOUBLE:
+                if (offset + 8 <= buffer.length)
+                {
+                    ubyte[8] doubleBytes = buffer[offset .. offset + 8];
+                    ulong doubleBits = littleEndianToNative!ulong(doubleBytes);
+                    value = ParquetValue(*cast(double*)&doubleBits);
+                    bytesRead = 8;
+                }
+                break;
+
+            case ParquetType.BYTE_ARRAY:
+                if (offset + 4 <= buffer.length)
+                {
+                    ubyte[4] lenBytes = buffer[offset .. offset + 4];
+                    uint length = littleEndianToNative!uint(lenBytes);
+                    offset += 4;
+                    if (offset + length <= buffer.length)
+                    {
+                        value = ParquetValue(cast(string) buffer[offset .. offset + length]);
+                        bytesRead = length;
+                    }
+                }
+                break;
+
+            case ParquetType.FIXED_LEN_BYTE_ARRAY:
+                uint fixedLength = 16;
+                if (offset + fixedLength <= buffer.length)
+                {
+                    value = ParquetValue(cast(string) buffer[offset .. offset + fixedLength]);
+                    bytesRead = fixedLength;
+                }
+                break;
+            }
+
+            if (bytesRead == 0)
+            {
+                value = getDefaultValue(type);
+            }
+
+            values ~= value;
+            offset += bytesRead;
+        }
+
+        return values;
     }
 
     void writeParquetFile()
     {
         file.rawWrite(cast(ubyte[]) PARQUET_MAGIC);
-        writeDataSection();
+
+        long dataStart = file.tell();
+
+        RowGroup rowGroup;
+        rowGroup.numRows = data.length;
+        rowGroup.columns = new ColumnChunk[metadata.schema.columns.length];
+
+        long totalRowGroupSize = 0;
+
+        foreach (colIdx, column; metadata.schema.columns)
+        {
+            long columnStart = file.tell();
+
+            ParquetValue[] columnValues;
+            foreach (row; data)
+            {
+                if (colIdx < row.length)
+                {
+                    columnValues ~= row[colIdx];
+                }
+                else
+                {
+                    columnValues ~= getDefaultValue(column.type);
+                }
+            }
+
+            ubyte[] columnData = serializeColumnData(columnValues, column.type);
+            file.rawWrite(columnData);
+
+            ColumnChunk chunk;
+            chunk.fileOffset = columnStart;
+            chunk.metaData.type = column.type;
+            chunk.metaData.encoding = ParquetEncoding.PLAIN;
+            chunk.metaData.compression = ParquetCompression.UNCOMPRESSED;
+            chunk.metaData.numValues = columnValues.length;
+            chunk.metaData.totalUncompressedSize = columnData.length;
+            chunk.metaData.totalCompressedSize = columnData.length;
+            chunk.metaData.dataPageOffset = columnStart;
+
+            rowGroup.columns[colIdx] = chunk;
+            totalRowGroupSize += columnData.length;
+        }
+
+        rowGroup.totalByteSize = totalRowGroupSize;
+        metadata.rowGroups = [rowGroup];
+
         ubyte[] footerData = createFooter();
         file.rawWrite(footerData);
+
         uint footerLength = cast(uint) footerData.length;
         ubyte[4] footerLengthBytes = nativeToLittleEndian(footerLength);
         file.rawWrite(footerLengthBytes);
         file.rawWrite(cast(ubyte[]) PARQUET_MAGIC);
     }
 
-    void writeDataSection()
+    ubyte[] serializeColumnData(ParquetValue[] values, ParquetType type)
     {
-        string[] headers;
-        foreach (col; metadata.schema.columns)
+        ubyte[] result;
+
+        foreach (value; values)
         {
-            headers ~= col.name;
+            ubyte[] valueBytes = serializeValue(value, type);
+            result ~= valueBytes;
         }
-        string headerLine = headers.join("\t") ~ "\n";
-        file.rawWrite(cast(ubyte[]) headerLine);
-        foreach (row; data)
+
+        return result;
+    }
+
+    ubyte[] serializeValue(ParquetValue value, ParquetType type)
+    {
+        final switch (type)
         {
-            string[] values;
-            foreach (value; row)
+        case ParquetType.BOOLEAN:
+            if (auto boolPtr = value.peek!bool())
             {
-                values ~= convertParquetValueToString(value);
+                return [cast(ubyte)(*boolPtr ? 1 : 0)];
             }
-            string dataLine = values.join("\t") ~ "\n";
-            file.rawWrite(cast(ubyte[]) dataLine);
+            return [0];
+
+        case ParquetType.INT32:
+            if (auto intPtr = value.peek!int())
+            {
+                return nativeToLittleEndian(*intPtr).dup;
+            }
+            return nativeToLittleEndian(0).dup;
+
+        case ParquetType.INT64:
+            if (auto longPtr = value.peek!long())
+            {
+                return nativeToLittleEndian(*longPtr).dup;
+            }
+            return nativeToLittleEndian(0L).dup;
+
+        case ParquetType.FLOAT:
+            if (auto floatPtr = value.peek!float())
+            {
+                uint floatBits = *cast(uint*) floatPtr;
+                return nativeToLittleEndian(floatBits).dup;
+            }
+            return nativeToLittleEndian(0u).dup;
+
+        case ParquetType.DOUBLE:
+            if (auto doublePtr = value.peek!double())
+            {
+                ulong doubleBits = *cast(ulong*) doublePtr;
+                return nativeToLittleEndian(doubleBits).dup;
+            }
+            return nativeToLittleEndian(0UL).dup;
+
+        case ParquetType.BYTE_ARRAY:
+            string str;
+            if (auto strPtr = value.peek!string())
+            {
+                str = *strPtr;
+            }
+            ubyte[] lengthBytes = nativeToLittleEndian(cast(uint) str.length).dup;
+            return lengthBytes ~ cast(ubyte[]) str;
+
+        case ParquetType.FIXED_LEN_BYTE_ARRAY:
+            string str;
+            if (auto strPtr = value.peek!string())
+            {
+                str = *strPtr;
+            }
+            ubyte[] result = cast(ubyte[]) str;
+            result.length = 16;
+            return result;
         }
     }
 
     ubyte[] createFooter()
     {
-        string footerJson = `{
-            "version": `
-            ~ metadata.version_.to!string ~ `,
-            "num_rows": `
-            ~ metadata.numRows.to!string ~ `,
-            "created_by": "`
-            ~ metadata.createdBy ~ `",
-            "schema": [`;
+        ubyte[] footer;
 
-        foreach (i, col; metadata.schema.columns)
+        footer ~= nativeToLittleEndian(metadata.version_);
+        footer ~= nativeToLittleEndian(cast(uint) metadata.schema.columns.length);
+
+        foreach (column; metadata.schema.columns)
         {
-            if (i > 0)
-                footerJson ~= ",";
-            footerJson ~= `{"name": "` ~ col.name ~ `", "type": "` ~ col.type.to!string ~ `"}`;
+            footer ~= nativeToLittleEndian(cast(uint) column.name.length);
+            footer ~= cast(ubyte[]) column.name;
+            footer ~= nativeToLittleEndian(cast(uint) column.type);
         }
 
-        footerJson ~= `]}`;
+        footer ~= nativeToLittleEndian(metadata.numRows);
+        footer ~= nativeToLittleEndian(cast(uint) metadata.rowGroups.length);
 
-        return cast(ubyte[]) footerJson;
+        foreach (rowGroup; metadata.rowGroups)
+        {
+            footer ~= nativeToLittleEndian(rowGroup.numRows);
+            footer ~= nativeToLittleEndian(rowGroup.totalByteSize);
+
+            foreach (columnChunk; rowGroup.columns)
+            {
+                footer ~= nativeToLittleEndian(columnChunk.fileOffset);
+                footer ~= nativeToLittleEndian(columnChunk.metaData.numValues);
+                footer ~= nativeToLittleEndian(columnChunk.metaData.totalUncompressedSize);
+            }
+        }
+
+        return footer;
+    }
+
+    ParquetValue getDefaultValue(ParquetType type)
+    {
+        final switch (type)
+        {
+        case ParquetType.BOOLEAN:
+            return ParquetValue(false);
+        case ParquetType.INT32:
+            return ParquetValue(0);
+        case ParquetType.INT64:
+            return ParquetValue(0L);
+        case ParquetType.FLOAT:
+            return ParquetValue(0.0f);
+        case ParquetType.DOUBLE:
+            return ParquetValue(0.0);
+        case ParquetType.BYTE_ARRAY:
+        case ParquetType.FIXED_LEN_BYTE_ARRAY:
+            return ParquetValue("");
+        }
     }
 
     string convertParquetValueToString(ParquetValue value)
@@ -659,76 +937,6 @@ private:
         catch (ConvException e)
         {
             return ParquetValue(strValue);
-        }
-    }
-
-    ParquetType inferTypeFromColumn(string[][] allRows, size_t colIdx)
-    {
-        import std.conv : to, ConvException;
-        import std.string : strip, toLower;
-        import std.algorithm : min;
-
-        if (allRows.length == 0 || colIdx >= allRows[0].length)
-        {
-            return ParquetType.BYTE_ARRAY;
-        }
-
-        size_t sampleSize = min(100, allRows.length);
-        int intCount = 0;
-        int floatCount = 0;
-        int boolCount = 0;
-
-        foreach (i; 0 .. sampleSize)
-        {
-            if (colIdx >= allRows[i].length)
-                continue;
-
-            string value = allRows[i][colIdx].strip().toLower();
-            if (value.length == 0)
-                continue;
-
-            if (value == "true" || value == "false" || value == "0" || value == "1")
-            {
-                boolCount++;
-                continue;
-            }
-
-            try
-            {
-                value.to!long;
-                intCount++;
-                continue;
-            }
-            catch (ConvException)
-            {
-            }
-
-            try
-            {
-                value.to!double;
-                floatCount++;
-                continue;
-            }
-            catch (ConvException)
-            {
-            }
-        }
-
-        if (boolCount > sampleSize * 0.8)
-        {
-            return ParquetType.BOOLEAN;
-        }
-        else if (intCount > sampleSize * 0.8)
-        {
-            return ParquetType.INT64;
-        }
-        else if ((intCount + floatCount) > sampleSize * 0.8)
-        {
-            return ParquetType.DOUBLE;
-        }
-        else
-        {
-            return ParquetType.BYTE_ARRAY;
         }
     }
 
