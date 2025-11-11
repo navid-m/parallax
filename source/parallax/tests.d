@@ -490,5 +490,27 @@ package unittest
         writeln("✓ Non-existent file correctly handled: ", e.msg);
     }
 
-    writeln("\n✓ All Parquet tests completed successfully!");
+    // auto asdf = DataFrame.readParquet("iris.parquet");
+    // asdf.show();
+}
+
+package unittest
+{
+    import std.conv;
+    
+    writeln("\n=== Benchmark: DataFrame Creation ===");
+    auto sw = StopWatch(AutoStart.yes);
+    
+    auto ids = iota(0, 10_000_000).array;
+    auto values = ids.map!(i => i * 1.5).array;
+    auto idCol = new TCol!int("id", ids);
+    auto valueCol = new TCol!double("value", values);
+    auto df = new DataFrame([
+        cast(IColumn) idCol,
+        cast(IColumn) valueCol
+    ]);
+    
+    sw.stop();
+    writeln("Created DataFrame with 10,000,000 rows in ", 
+        sw.peek.total!"msecs".to!float / 1000, " seconds");
 }

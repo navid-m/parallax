@@ -8,7 +8,7 @@ module parallax.columns;
 
 import parallax.values;
 
-/** 
+/**
  * Some column in a dataframe.
  */
 class Column(T)
@@ -22,7 +22,7 @@ class Column(T)
         this.data = data;
     }
 
-    /** 
+    /**
      * Append a value to a column.
      *
      * Params:
@@ -33,7 +33,7 @@ class Column(T)
         data ~= value;
     }
 
-    /** 
+    /**
      * Get back some value by index.
      *
      * Params:
@@ -42,7 +42,7 @@ class Column(T)
      */
     T opIndex(size_t idx) const => data[idx];
 
-    /** 
+    /**
      * Assign by index.
      *
      * Params:
@@ -54,7 +54,7 @@ class Column(T)
         data[idx] = value;
     }
 
-    /** 
+    /**
      * Get the data length of the column.
      *
      * Returns: Length of the data
@@ -157,7 +157,7 @@ interface IColumn
     IColumn copyWithName(string newName);
 }
 
-/** 
+/**
  * A typed column.
  */
 class TCol(T) : IColumn
@@ -166,7 +166,7 @@ class TCol(T) : IColumn
 
     private Column!T col;
 
-    /** 
+    /**
      * Construct the typed column given a name and some data.
      *
      * Params:
@@ -178,21 +178,21 @@ class TCol(T) : IColumn
         col = new Column!T(name, data);
     }
 
-    /** 
+    /**
      * Get the name of the typed column.
      *
      * Returns: Name of the typed column
      */
     @property string name() const => col.name;
 
-    /** 
+    /**
      * Get the length of the column
      *
      * Returns: Column length
      */
     @property size_t length() const => col.length;
 
-    /** 
+    /**
      * Get some value by index from the typed column.
      *
      * Params:
@@ -226,7 +226,7 @@ class TCol(T) : IColumn
         col.data ~= values;
     }
 
-    /** 
+    /**
      * Set some value by index.
      *
      * Params:
@@ -238,7 +238,7 @@ class TCol(T) : IColumn
         col[idx] = value.get!T;
     }
 
-    /** 
+    /**
      * Stringer function for a cell (by index) of the column.
      *
      * Returns: The string representation of the typed column cell.
@@ -253,7 +253,7 @@ class TCol(T) : IColumn
     IColumn slice(size_t start, size_t end) => new TCol!T(col.name, col.data[start .. end]);
     IColumn copy() => new TCol!T(col.name, col.data.dup);
 
-    /** 
+    /**
      * Append some value to the column.
      *
      * Params:
@@ -264,17 +264,17 @@ class TCol(T) : IColumn
         col.append(value);
     }
 
-    /** 
+    /**
      * Get back data from the column as a list
      *
      * Returns: The column data
      */
     T[] getData() => col.data;
 
-    /** 
+    /**
      * Create an empty column.
      *
-     * Returns: The empty column 
+     * Returns: The empty column
      */
     IColumn createEmpty() => new TCol!T(col.name, []);
 

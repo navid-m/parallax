@@ -23,14 +23,14 @@ import std.variant;
 
 DataFrame createDataFrame(T...)(string[] names, T data) => DataFrame.create(names, data);
 
-/** 
+/**
  * A mapping of string to variant.
- * 
+ *
  * Represents a group of dataframes.
  */
 alias GroupedDataFrame = Variant[string];
 
-/** 
+/**
  * A container for regular numerical and time-series related data.
  */
 class DataFrame
@@ -60,7 +60,7 @@ class DataFrame
         }
     }
 
-    /** 
+    /**
      * Get back a dataframe given some configuration.
      *
      * Params:
@@ -83,7 +83,7 @@ class DataFrame
         return df;
     }
 
-    /** 
+    /**
      * Add a column to this dataframe.
      *
      * Params:
@@ -281,7 +281,7 @@ class DataFrame
      *
      * Params:
      *   colName = The name of the column to group by.
-     * Returns: A GroupedDataFrame where keys are unique values from the grouping column 
+     * Returns: A GroupedDataFrame where keys are unique values from the grouping column
      * and values are DataFrames containing the grouped rows.
      */
     GroupedDataFrame groupBy(string colName)
@@ -1783,7 +1783,6 @@ class DataFrame
         writeln();
         writeln("Column Information:");
         writef("%-20s %-15s %-10s\n", "Column", "Inferred Type", "Non-null");
-        writeln("-".repeat(50));
 
         foreach (i, colName; columnNames_)
         {
